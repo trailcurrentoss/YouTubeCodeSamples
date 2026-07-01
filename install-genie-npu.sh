@@ -28,33 +28,44 @@ if [[ "${EUID}" -eq 0 ]]; then
     exit 1
 fi
 
-echo "==> [1/7] Installing btop (for visualizing CPU load during chats)"
+echo "==> [1/8] Installing btop (for visualizing CPU load during chats)"
 sudo apt-get update -qq
 sudo apt-get install -y -qq btop
 
-echo "==> [2/7] Installing modelscope"
+echo "==> [2/8] Installing modelscope"
 pip3 install --quiet --break-system-packages modelscope
 export PATH="${HOME}/.local/bin:${PATH}"
 
-echo "==> [3/7] Downloading ${MODEL_REPO} (~1.3 GB)"
+echo "==> [3/8] Downloading ${MODEL_REPO} (~1.3 GB)"
 cd "${HOME}"
 modelscope download --model "${MODEL_REPO}" --local-dir "./${MODEL_DIR_NAME}"
 
-echo "==> [4/7] Fetching genie_server.py from TrailCurrent Peregrine"
+# The modelscope bundle was retuned in mid-2026 to prioritize first-token
+# latency: poll:true busy-spins on shared memory waiting for the DSP, and
+# perf_profile:burst keeps the DSP pinned at max power. On the Q6A that
+# saturates three big cores at idle (~180% CPU, thermal throttling). Revert
+# both to the earlier tuning so genie-server idles near 0% CPU.
+echo "==> [4/8] Patching HTP config for quiet idle (poll=false, perf_profile=balanced)"
+sed -i 's/"perf_profile": "burst"/"perf_profile": "balanced"/' \
+    "${MODEL_DIR}/htp_backend_ext_config.json"
+sed -i 's/"poll": true/"poll": false/' \
+    "${MODEL_DIR}/htp-model-config-llama32-1b-gqa.json"
+
+echo "==> [5/8] Fetching genie_server.py from TrailCurrent Peregrine"
 curl -fsSL -o "${HOME}/genie_server.py" "${PEREGRINE_RAW}/src/genie_server.py"
 
-echo "==> [5/7] Installing systemd unit (retargeted for user '${USER}')"
+echo "==> [6/8] Installing systemd unit (retargeted for user '${USER}')"
 curl -fsSL "${PEREGRINE_RAW}/config/genie-server.service" \
   | sed -e "s|/home/trailcurrent|${HOME}|g" \
         -e "s|User=trailcurrent|User=${USER}|g" \
         -e "s|Llama3.2-1B-1024-v68|${MODEL_DIR_NAME}|g" \
   | sudo tee /etc/systemd/system/genie-server.service >/dev/null
 
-echo "==> [6/7] Enabling and starting genie-server"
+echo "==> [7/8] Enabling and starting genie-server"
 sudo systemctl daemon-reload
 sudo systemctl enable --now genie-server
 
-echo "==> [7/7] Waiting for NPU warmup (up to 120s)"
+echo "==> [8/8] Waiting for NPU warmup (up to 120s)"
 if ! sudo timeout 120 journalctl -u genie-server -f -n 200 --no-pager 2>/dev/null \
      | grep -qm1 "Warmup done"; then
     echo
