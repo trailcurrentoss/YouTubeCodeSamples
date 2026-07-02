@@ -28,9 +28,9 @@ if [[ "${EUID}" -eq 0 ]]; then
     exit 1
 fi
 
-echo "==> [1/8] Installing btop (for visualizing CPU load during chats)"
+echo "==> [1/8] Installing btop + jq (btop for CPU visualization, jq for stream parsing)"
 sudo apt-get update -qq
-sudo apt-get install -y -qq btop
+sudo apt-get install -y -qq btop jq
 
 echo "==> [2/8] Installing modelscope"
 pip3 install --quiet --break-system-packages modelscope
@@ -81,9 +81,11 @@ NPU LLM is live on http://localhost:11434/
 Model:  ${MODEL_REPO}
 Serves on every boot (systemd enabled).
 
-Try it:
-  curl -s http://localhost:11434/api/chat \\
-    -d '{"messages":[{"role":"user","content":"Tell me a joke"}]}'
+Try it (streams token-by-token like ChatGPT):
+  curl -sN http://localhost:11434/api/chat \\
+    -d '{"messages":[{"role":"user","content":"Explain what a Large Language Model is and how it works in lay person terms."}],"stream":true}' \\
+    | jq --unbuffered -j '.response'
+  echo
 
 Watch NPU/CPU load side-by-side in another terminal:
   btop
