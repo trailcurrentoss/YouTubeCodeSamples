@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#000000">
+<title>TrailCurrent — Wi-Fi Setup</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<header class="app-header">
+  <svg class="logo" viewBox="0 0 240 48" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="TrailCurrent">
+    <defs>
+      <linearGradient id="trailGradient" x1="2.5" y1="17.4" x2="35.5" y2="17.4" gradientUnits="userSpaceOnUse">
+        <stop offset="0%" stop-color="#52a441"/>
+        <stop offset="100%" stop-color="#74fe00"/>
+      </linearGradient>
+    </defs>
+    <g transform="translate(4,8)">
+      <path d="M 0,28 12,8 18,16 28,4 38,28 Z" fill="#52a441" opacity="0.3"/>
+      <path d="m 4,26 q 6,-4 10,-2 6,3 10,-2 4,-5 10,-2" stroke="url(#trailGradient)"
+            stroke-width="3" stroke-linecap="round" fill="none"/>
+      <path d="m 30,10 3,6 h -4 l 3,8" stroke="#74fe00" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    </g>
+    <text x="52" y="33" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif"
+          font-size="24" font-weight="700" fill="#52a441">Trail<tspan fill="#2d5a25">Current</tspan></text>
+  </svg>
+  <span class="product">ESP32-P4<br>Wi-Fi Setup</span>
+</header>
+
+<main>
+  <h1 class="page-title">Connect to Wi-Fi</h1>
+  <p class="page-sub">
+    This board has no saved network yet. Pick one below and it will remember it
+    for next time.
+  </p>
+
+  <div id="banner"></div>
+
+  <!-- Step 1: choose a network -->
+  <section class="card" id="step-scan">
+    <h2 class="card-title">
+      <span>Available networks</span>
+      <button class="btn btn-ghost btn-sm" id="rescan" type="button">Rescan</button>
+    </h2>
+    <div id="scan-body">
+      <div class="empty center-row"><span class="spinner"></span> Scanning…</div>
+    </div>
+  </section>
+
+  <!-- Step 2: password -->
+  <section class="card" id="step-auth" hidden>
+    <h2 class="card-title">Password</h2>
+    <p class="page-sub" style="margin-bottom:16px">
+      Joining <strong id="chosen-ssid"></strong>
+    </p>
+    <form id="connect-form">
+      <label for="password">Network password</label>
+      <div class="pw-wrap">
+        <input type="password" id="password" autocomplete="current-password"
+               autocapitalize="none" autocorrect="off" spellcheck="false"
+               placeholder="Enter the password">
+        <button type="button" class="pw-toggle" id="pw-toggle"
+                aria-label="Show password">Show</button>
+      </div>
+      <div class="btn-row">
+        <button type="button" class="btn btn-ghost" id="back">Back</button>
+        <button type="submit" class="btn btn-primary btn-block" id="join">Join network</button>
+      </div>
+    </form>
+  </section>
+
+  <!-- Step 3: result -->
+  <section class="card" id="step-done" hidden>
+    <h2 class="card-title">Connected</h2>
+    <dl id="done-body"></dl>
+    <p class="page-sub" style="margin:16px 0 0">
+      The board is saving this network and restarting. It will rejoin
+      automatically — reconnect your device to the same Wi-Fi to reach the
+      dashboard.
+    </p>
+  </section>
+
+  <footer>TrailCurrent · Waveshare ESP32-P4-WIFI6</footer>
+</main>
+
+<script src="/app.js"></script>
+</body>
+</html>

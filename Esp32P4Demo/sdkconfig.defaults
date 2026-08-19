@@ -1,0 +1,130 @@
+# =============================================================================
+# Waveshare ESP32-P4-WIFI6 (SKU 31647) — board defaults
+#
+# Bare board configuration: no MIPI-DSI display, no MIPI-CSI camera.
+# Hardware: ESP32-P4NRW32 — 32 MB in-package HEX PSRAM, 32 MB onboard NOR flash.
+#
+# This file only SEEDS a fresh sdkconfig. ESP-IDF does not re-apply it to an
+# existing sdkconfig, so after editing here you must delete the generated
+# sdkconfig and rebuild for the change to take effect:
+#
+#     rm sdkconfig && idf.py build
+# =============================================================================
+
+CONFIG_IDF_TARGET="esp32p4"
+
+# -----------------------------------------------------------------------------
+# LWIP socket pool
+#
+# Two HTTP server instances run at once (UI on :80, video streams on :81) and
+# each holds a listener + a UDP control socket besides its sessions; a phone
+# browser alone bursts ~6 parallel connections. The 10-socket default runs out
+# and new connections die in accept() with errno 23 (ENFILE). Budget:
+# 2 listeners + 2 ctrl + 7 UI sessions + 2 stream sessions = 13, plus margin.
+# -----------------------------------------------------------------------------
+CONFIG_LWIP_MAX_SOCKETS=16
+
+# -----------------------------------------------------------------------------
+# Chip revision
+#
+# ESP32-P4 rev <3.0 and rev >=3.0 are mutually exclusive build targets. A binary
+# built for one range will not flash onto the other; esptool rejects it with
+# "requires chip revision in range [...]".
+#
+# THIS BOARD'S SILICON IS REV v1.3 (confirmed on hardware), so the pre-v3.0
+# profile is selected. That is also ESP-IDF v5.5's own default, but it is set
+# explicitly here so the intent is visible.
+#
+# If you move this project to a board with rev v3.0+ production silicon, swap
+# the two lines below for:
+#     # CONFIG_ESP32P4_SELECTS_REV_LESS_V3 is not set
+#     CONFIG_ESP32P4_REV_MIN_300=y
+# then `rm sdkconfig && idf.py build`.
+#
+# Check any board's silicon with: esptool.py --port <PORT> chip_id
+# -----------------------------------------------------------------------------
+CONFIG_ESP32P4_SELECTS_REV_LESS_V3=y
+CONFIG_ESP32P4_REV_MIN_1=y
+
+# -----------------------------------------------------------------------------
+# Flash — 32 MB NOR, QIO. >16 MB automatically enables 32-bit flash addressing
+# (CONFIG_BOOTLOADER_FLASH_32BIT_ADDR), which IDF handles for us.
+# -----------------------------------------------------------------------------
+CONFIG_ESPTOOLPY_FLASHMODE_QIO=y
+CONFIG_ESPTOOLPY_FLASHFREQ_80M=y
+CONFIG_ESPTOOLPY_FLASHSIZE_32MB=y
+
+# -----------------------------------------------------------------------------
+# PSRAM — 32 MB in-package AP HEX PSRAM at 200 MHz.
+#
+# The ESP32-P4 PSRAM driver auto-detects the die size at boot; there is no
+# size Kconfig to set. Verify the detected size in the boot log:
+#     "Found 32MB PSRAM device"
+# -----------------------------------------------------------------------------
+CONFIG_SPIRAM=y
+CONFIG_SPIRAM_MODE_HEX=y
+CONFIG_SPIRAM_SPEED_200M=y
+CONFIG_SPIRAM_XIP_FROM_PSRAM=y
+CONFIG_SPIRAM_USE_MALLOC=y
+CONFIG_SPIRAM_TRY_ALLOCATE_WIFI_LWIP=y
+CONFIG_SPIRAM_MALLOC_ALWAYSINTERNAL=16384
+
+# L2 cache sized for the HEX PSRAM bus.
+CONFIG_CACHE_L2_CACHE_256KB=y
+CONFIG_CACHE_L2_CACHE_LINE_128B=y
+
+# -----------------------------------------------------------------------------
+# microSD demo behaviour
+#
+# The destructive wipe-and-reformat on every boot is OFF. It costs ~38 s on a
+# 32 GB card and destroys whatever is on it, which is only worth it while
+# bringing a board up. A card with no filesystem at all is still formatted at
+# mount time — that is what makes a blank card usable and destroys nothing.
+# -----------------------------------------------------------------------------
+CONFIG_DEMO_SD_FORMAT_ON_BOOT=n
+
+# -----------------------------------------------------------------------------
+# AI camera — OV5647 over MIPI-CSI, esp-dl COCO detection
+#
+# The 320x320 YOLO11n model is flashed (embedded in the app image) and selected
+# as the default: roughly twice the frame rate of the 640 variant, which
+# matters more than box precision for a live view. Only ONE model is flashed —
+# each is ~3 MB of app image.
+# -----------------------------------------------------------------------------
+CONFIG_ESP_VIDEO_ENABLE_MIPI_CSI_VIDEO_DEVICE=y
+CONFIG_CAMERA_OV5647=y
+CONFIG_CAMERA_OV5647_AUTO_DETECT_MIPI_INTERFACE_SENSOR=y
+CONFIG_CAMERA_OV5647_MIPI_RAW8_800X640_50FPS=y
+CONFIG_FLASH_COCO_DETECT_YOLO11N_S8_V1=n
+CONFIG_FLASH_COCO_DETECT_YOLO11N_320_S8_V1=y
+CONFIG_COCO_DETECT_YOLO11N_320_S8_V1=y
+
+# -----------------------------------------------------------------------------
+# Partition table
+# -----------------------------------------------------------------------------
+CONFIG_PARTITION_TABLE_CUSTOM=y
+CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="partitions.csv"
+
+# -----------------------------------------------------------------------------
+# FATFS — long filenames on the heap, UTF-8, sector-aligned stat block size.
+# -----------------------------------------------------------------------------
+CONFIG_FATFS_LFN_HEAP=y
+CONFIG_FATFS_MAX_LFN=255
+CONFIG_FATFS_API_ENCODING_UTF_8=y
+CONFIG_FATFS_VFS_FSTAT_BLKSIZE=4096
+
+# -----------------------------------------------------------------------------
+# System
+# -----------------------------------------------------------------------------
+CONFIG_COMPILER_OPTIMIZATION_PERF=y
+CONFIG_ESP_MAIN_TASK_STACK_SIZE=10240
+CONFIG_FREERTOS_HZ=1000
+
+# Console on UART0 via the onboard USB-UART bridge.
+#
+# The bridge enumerates as /dev/ttyACM0 on Linux, which looks exactly like the
+# ESP32-P4's native USB-Serial/JTAG but is NOT it. Selecting
+# CONFIG_ESP_CONSOLE_USB_SERIAL_JTAG sends all output to the other USB port:
+# the ROM banner still appears (the ROM uses UART0) and then everything goes
+# silent from "entry 0x..." onward, which reads as a bootloader hang but isn't.
+CONFIG_ESP_CONSOLE_UART_DEFAULT=y

@@ -1,0 +1,44 @@
+## IDF Component Manager Manifest File
+##
+## The ESP32-P4 has no radio of its own. Wi-Fi is provided by the onboard
+## ESP32-C6 over SDIO: esp_wifi_remote presents the ordinary esp_wifi API and
+## forwards it, and esp_hosted is the SDIO transport that carries it.
+##
+## The C6 must be running matching ESP-Hosted slave firmware for this to work.
+dependencies:
+  espressif/esp_wifi_remote:
+    matches:
+      - if: "idf_version >= 6.0"
+        version: ">=1.6,<2.0"
+      - if: "idf_version < 6.0"
+        version: "0.14.*"
+
+  espressif/esp_hosted:
+    matches:
+      - if: "idf_version >= 6.0"
+        version: ">=2.12,<3.0"
+      - if: "idf_version < 6.0"
+        version: "1.4.*"
+
+  ## The ES8311 codec driver is vendored locally (components/es8311), ported
+  ## from the legacy I2C driver to i2c_master so the codec and the camera's
+  ## SCCB can share one bus — ESP-IDF refuses to mix the two drivers on a port.
+
+  ## MIPI-CSI camera stack: V4L2-style capture devices over the P4's CSI port
+  ## and ISP, with sensor drivers (OV5647 enabled in sdkconfig).
+  espressif/esp_video:
+    version: "^1.0.0"
+
+  ## Hardware H.264 encoder driver for the plain webcam stream. The ISP's
+  ## YUV420 output is the exact macroblock layout the encoder consumes.
+  espressif/esp_h264:
+    version: "^1.0.4"
+
+  ## On-device inference runtime plus Espressif's quantized COCO detection
+  ## model (YOLO11n-based .espdl). The pipeline loads whatever .espdl it is
+  ## given, so a future YOLO26n conversion drops in without code changes.
+  espressif/coco_detect:
+    version: "*"
+
+  idf:
+    version: ">=5.4"

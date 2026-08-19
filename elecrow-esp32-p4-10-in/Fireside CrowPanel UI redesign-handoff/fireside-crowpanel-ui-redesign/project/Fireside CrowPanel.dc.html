@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+<script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+<style>
+/* Canonical TrailCurrent tokens (colors_and_type.css) — do not restyle per device */
+body { margin:0; --desk:#e8e8e8; --bg:#f5f5f5; --card:#ffffff; --card2:#f0f0f0; --border:#dddddd; --text:#1a1a1a; --text2:#4a4a4a; --muted:#888888;
+  --accent:#52A441; --accent-soft:#EDF3EA; --accent-glow:0 0 15px rgba(82,164,65,0.3);
+  --bar:rgba(255,255,255,0.95); --solar:#FFC107; --info:#48E6FE; --danger:#FF5453; --slate:#505050; --grid:rgba(0,0,0,0.08); }
+body.dark { --desk:#0a0a0a; --bg:#000000; --card:#1a1a1a; --card2:#252525; --border:#333333; --text:#ffffff; --text2:#aaaaaa; --muted:#666666;
+  --accent:#7BC96A; --accent-soft:rgba(82,164,65,0.16); --accent-glow:0 0 20px rgba(82,164,65,0.5);
+  --bar:rgba(10,10,10,0.95); --solar:#FFC107; --info:#48E6FE; --danger:#FF5453; --slate:#BDBDBD; --grid:rgba(255,255,255,0.08); }
+body { background:var(--desk); }
+button, input, select { font-family: inherit; }
+a { color:#83A79C; } a:hover { color:#52A441; }
+@keyframes clockblink { 0%,49% { opacity:1; } 50%,100% { opacity:0.15; } }
+@keyframes viewIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+@keyframes pulseWarn { 0%,100% { opacity:1; } 50% { opacity:0.45; } }
+</style>
+</helmet>
+<div style="min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  <div style="background:linear-gradient(145deg,#20241f,#0c0e0b); border-radius:20px; padding:34px; box-shadow:0 30px 70px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.06);">
+    <div style="width:1024px; height:600px; border-radius:6px; overflow:hidden; position:relative; background:var(--bg); color:var(--text); display:grid; grid-template-rows:38px 1fr 48px; box-shadow:0 0 0 2px #000, inset 0 2px 8px rgba(0,0,0,0.35);">
+
+      <div style="display:flex; align-items:center; justify-content:space-between; padding:0 14px; background:var(--bar); border-bottom:1px solid var(--border); z-index:5;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <img src="uploads/tc_fireside.svg" alt="Fireside" style="width:20px; height:20px; display:block;">
+          <span style="font-size:13px; font-weight:600; letter-spacing:1.2px; text-transform:uppercase; color:var(--accent);">Fireside</span>
+          <span style="font-size:11px; color:var(--text2); letter-spacing:-0.1px; margin-left:4px;">{{ greeting }}</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:12px;">
+          <span style="display:inline-flex; align-items:center; gap:5px; font-size:11px; color:var(--text2);"><ion-icon name="wifi-outline" style="font-size:14px;"></ion-icon><span style="font-variant-numeric:tabular-nums;">-52 dBm</span></span>
+          <span style="width:1px; height:16px; background:var(--border);"></span>
+          <span style="position:relative; display:inline-flex;">
+            <ion-icon name="notifications-outline" style="font-size:16px; color:var(--text2);"></ion-icon>
+            <sc-if value="{{ showBadge }}" hint-placeholder-val="{{ false }}"><span style="position:absolute; top:-3px; right:-4px; min-width:13px; height:13px; border-radius:9999px; background:var(--danger); color:#fff; font-size:8px; font-weight:700; display:flex; align-items:center; justify-content:center;">{{ badgeCount }}</span></sc-if>
+          </span>
+          <button onClick="{{ toggleTheme }}" style="width:28px; height:22px; display:flex; align-items:center; justify-content:center; background:var(--card2); border:1px solid var(--border); border-radius:6px; color:var(--text2); cursor:pointer; padding:0;">
+            <ion-icon name="{{ themeIcon }}" style="font-size:13px;"></ion-icon>
+          </button>
+          <span style="font-size:13px; font-weight:500; font-variant-numeric:tabular-nums;">{{ clockShort }}</span>
+        </div>
+      </div>
+
+      <div style="overflow:hidden; position:relative;">
+
+        <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+        <div data-screen-label="Home" style="position:absolute; inset:0; padding:12px; animation:viewIn 0.2s ease both;">
+          <div style="display:flex; flex-direction:column; gap:10px; min-height:0; height:100%;">
+            <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:8px;">
+              <sc-for list="{{ devices }}" as="d" hint-placeholder-count="8">
+                <button onClick="{{ d.onToggle }}" style="background:{{ d.bg }}; border:1px solid {{ d.bc }}; border-radius:10px; padding:14px 6px; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:6px; color:{{ d.fg }}; box-shadow:{{ d.glow }}; transition:all 0.15s ease;">
+                  <ion-icon name="{{ d.icon }}" style="font-size:24px;"></ion-icon>
+                  <span style="font-size:11px; font-weight:500; letter-spacing:0.2px; text-align:center; line-height:1.2;">{{ d.label }}</span>
+                </button>
+              </sc-for>
+            </div>
+            <div style="flex:1; background:var(--card); border:1px solid var(--border); border-radius:12px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; min-height:0;">
+              <div style="display:flex; align-items:center; gap:14px;">
+                <span style="font-size:104px; font-weight:200; line-height:1; font-variant-numeric:tabular-nums; letter-spacing:-2px;">{{ clockHours }}</span>
+                <span style="display:flex; flex-direction:column; gap:16px; animation:clockblink 1s steps(1) infinite;">
+                  <span style="width:11px; height:11px; border-radius:50%; background:var(--accent);"></span>
+                  <span style="width:11px; height:11px; border-radius:50%; background:var(--accent);"></span>
+                </span>
+                <span style="font-size:104px; font-weight:200; line-height:1; font-variant-numeric:tabular-nums; letter-spacing:-2px;">{{ clockMinutes }}</span>
+                <sc-if value="{{ showAmPm }}" hint-placeholder-val="{{ true }}"><span style="font-size:26px; font-weight:500; color:var(--accent); align-self:flex-end; margin-bottom:10px;">{{ clockAmPm }}</span></sc-if>
+              </div>
+              <span style="font-size:15px; color:var(--text2);">{{ weekday }} · {{ dateLong }}</span>
+            </div>
+          </div>
+        </div>
+        </sc-if>
+
+        <sc-if value="{{ isTrailer }}" hint-placeholder-val="{{ false }}">
+        <div data-screen-label="Trailer" style="position:absolute; inset:0; padding:12px; display:grid; grid-template-columns:1fr 1fr 300px; gap:10px; animation:viewIn 0.2s ease both;">
+          <div style="background:var(--card); border:1px solid var(--border); border-radius:12px; padding:12px; display:flex; flex-direction:column; gap:8px;">
+            <span style="font-size:9px; font-weight:600; letter-spacing:0.8px; text-transform:uppercase; color:var(--muted);">Leveling — Side</span>
+            <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px;">
+              <div style="width:150px; height:150px; border-radius:50%; border:2px solid var(--border); background:var(--card2); position:relative;">
+                <span style="position:absolute; left:6%; right:6%; top:50%; height:1px; background:var(--border);"></span>
+                <span style="position:absolute; top:6%; bottom:6%; left:50%; width:1px; background:var(--border);"></span>
+                <span style="position:absolute; inset:28%; border:1px solid var(--border); border-radius:50%;"></span>
+                <span style="position:absolute; width:16px; height:16px; border-radius:50%; background:var(--solar); box-shadow:0 0 10px var(--solar); left:{{ pitchBx }}; top:{{ pitchBy }};"></span>
+              </div>
+              <div style="display:flex; gap:22px;">
+                <span style="text-align:center;"><span style="display:block; font-size:9px; text-transform:uppercase; letter-spacing:0.6px; color:var(--muted);">Front</span><span style="font-size:20px; font-variant-numeric:tabular-nums;">{{ frontAngle }}°</span></span>
+                <span style="text-align:center;"><span style="display:block; font-size:9px; text-transform:uppercase; letter-spacing:0.6px; color:var(--muted);">Back</span><span style="font-size:20px; font-variant-numeric:tabular-nums;">{{ backAngle }}°</span></span>
+              </div>
+              <span style="font-size:10px; font-weight:600; letter-spacing:0.5px; text-transform:uppercase; padding:3px 8px; border-radius:4px; background:var(--accent-soft); color:var(--accent);">{{ pitchStatus }}</span>
+            </div>
+          </div>
+          <div style="background:var(--card); border:1px solid var(--border); border-radius:12px; padding:12px; display:flex; flex-direction:column; gap:8px;">
+            <span style="font-size:9px; font-weight:600; letter-spacing:0.8px; text-transform:uppercase; color:var(--muted);">Leveling — Back</span>
+            <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px;">
+              <div style="width:150px; height:150px; border-radius:50%; border:2px solid var(--border); background:var(--card2); position:relative;">
+                <span style="position:absolute; left:6%; right:6%; top:50%; height:1px; background:var(--border);"></span>
+                <span style="position:absolute; top:6%; bottom:6%; left:50%; width:1px; background:var(--border);"></span>
+                <span style="position:absolute; inset:28%; border:1px solid var(--border); border-radius:50%;"></span>
+                <span style="position:absolute; width:16px; height:16px; border-radius:50%; background:var(--solar); box-shadow:0 0 10px var(--solar); left:{{ rollBx }}; top:{{ rollBy }};"></span>
+              </div>
+              <div style="display:flex; gap:22px;">
+                <span style="text-align:center;"><span style="display:block; font-size:9px; text-transform:uppercase; letter-spacing:0.6px; color:var(--muted);">Left</span><span style="font-size:20px; font-variant-numeric:tabular-nums;">{{ leftAngle }}°</span></span>
+                <span style="text-align:center;"><span style="display:block; font-size:9px; text-transform:uppercase; letter-spacing:0.6px; color:var(--muted);">Right</span><span style="font-size:20px; font-variant-numeric:tabular-nums;">{{ rightAngle }}°</span></span>
+              </div>
+              <span style="font-size:10px; font-weight:600; letter-spacing:0.5px; text-transform:uppercase; padding:3px 8px; border-radius:4px; background:{{ rollBadgeBg }}; color:{{ rollBadgeFg }};">{{ rollStatus }}</span>
+            </div>
+          </div>
+          <div style="background:var(--card); border:1px solid var(--border); border-radius:12px; padding:12px; display:flex; flex-direction:column; gap:2px;">
+            <span style="font-size:9px; font-weight:600; letter-spacing:0.8px; text-transform:uppercase; color:var(--muted); margin-bottom:6px;">GNSS Details</span>
+            <sc-for list="{{ gnssRows }}" as="g" hint-placeholder-count="6">
+              <div style="display:flex; justify-content:space-between; align-items:baseline; padding:7px 0; border-bottom:1px solid var(--border);">
+                <span style="font-size:11px; color:var(--muted);">{{ g.k }}</span>
+                <span style="font-size:13px; font-variant-numeric:tabular-nums; color:var(--text);">{{ g.v }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        </sc-if>
+
+        <sc-if value="{{ isPower }}" hint-placeholder-val="{{ false }}">
+        <div data-screen-label="Power" style="position:absolute; inset:0; padding:12px; display:flex; flex-direction:column; gap:8px; animation:viewIn 0.2s ease both;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:12px; font-weight:600;">Energy · last 1 hr</span>
+            <span style="display:inline-flex; gap:3px; background:var(--card2); border:1px solid var(--border); border-radius:9999px; padding:3px;">
+              <sc-for list="{{ powerVariants }}" as="v" hint-placeholder-count="3">
+                <button onClick="{{ v.onSel }}" style="font-size:9px; font-weight:600; letter-spacing:0.5px; text-transform:uppercase; padding:4px 10px; border:0; border-radius:9999px; cursor:pointer; background:{{ v.bg }}; color:{{ v.fg }};">{{ v.label }}</button>
+              </sc-for>
+            </span>
+          </div>
+
+          <sc-if value="{{ powA }}" hint-placeholder-val="{{ true }}">
+          <div style="flex:1; display:flex; flex-direction:column; gap:8px; min-height:0;">
+            <div style="flex:1; display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; gap:8px; min-height:0;">
+              <sc-for list="{{ powerCards }}" as="m" hint-placeholder-count="4">
+                <div style="background:var(--card); border:1px solid var(--border); border-radius:12px; padding:10px; display:flex; flex-direction:column; min-height:0;">
+                  <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:9px; font-weight:600; letter-spacing:0.7px; text-transform:uppercase; color:var(--muted);">{{ m.label }}</span>
+                    <ion-icon name="{{ m.icon }}" style="font-size:14px; color:{{ m.color }};"></ion-icon>
+                  </div>
+                  <div style="display:flex; align-items:baseline; gap:3px; margin:4px 0;">
+                    <span style="font-size:24px; font-weight:400; line-height:1; font-variant-numeric:tabular-nums; color:{{ m.color }};">{{ m.value }}</span>
+                    <span style="font-size:11px; color:var(--text2);">{{ m.unit }}</span>
+                  </div>
+                  <svg viewBox="0 0 100 26" preserveAspectRatio="none" style="width:100%; flex:1; min-height:0;">
+                    <path d="{{ m.bars26 }}" fill="{{ m.color }}" fill-opacity="0.85"></path>
+                  </svg>
+                </div>
+              </sc-for>
+            </div>
+            <div style="height:96px; display:grid; grid-template-columns:repeat(3,1fr); gap:8px; flex-shrink:0;">
+              <div style="background:var(--card); border:1px solid var(--border); border-radius:12px; padding:10px 12px; display:flex; flex-direction:column; justify-content:center; gap:2px;">
+                <span style="font-size:9px; font-weight:600; letter-spacing:0.7px; text-transform:uppercase; color:var(--muted);">Charge Status</span>
+                <span style="font-size:20px; color:var(--accent); line-height:1.15;">{{ chargeType }}</span>
+                <span style="font-size:10px; color:var(--muted);">Solar MPPT active</span>
+              </div>
+              <div style="background:var(--card); border:1px solid var(--border); border-radius:12px; padding:10px 12px; display:flex; flex-direction:column; justify-content:center; gap:6px;">
+                <span style="font-size:9px; font-weight:600; letter-spacing:0.7px; text-transform:uppercase; color:var(--muted);">Shore Power</span>
+                <span style="display:inline-flex; align-items:center; gap:6px;">
+                  <span style="width:8px; height:8px; border-radius:50%; background:var(--muted);"></span>
+                  <span style="font-size:13px; color:var(--text2);">Disconnected</span>
+                </span>
+              </div>
+              <div style="background:var(--card); border:1px solid var(--border); border-radius:12px; padding:10px 12px; display:flex; flex-direction:column; justify-content:center; gap:4px;">
+                <span style="font-size:9px; font-weight:600; letter-spacing:0.7px; text-transform:uppercase; color:var(--muted);">Time Remaining</span>
+                <span style="display:inline-flex; align-items:baseline; gap:6px;">
+                  <span style="font-size:24px; font-weight:300; font-family:Roboto,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; line-height:1; font-variant-numeric:tabular-nums; color:{{ socColor }};">{{ timeRemaining }}</span>
+                  <span style="font-size:10px; color:var(--muted);">at {{ loadNow }} W draw</span>
+                </span>
+              </div>
+            </div>
+          </div>
+          </sc-if>
+
+          <sc-if value="{{ powB }}" hint-placeholder-val="{{ false }}">
+          <div style="flex:1; display:flex; flex-direction:column; gap:8px; min-height:0;">
+            <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:8px;">
+              <sc-for list="{{ powerCards }}" as="m" hint-placeholder-count="4">
+                <button onClick="{{ m.onSel }}" style="background:{{ m.pillBg }}; border:1px solid {{ m.pillBc }}; border-radius:10px; padding:8px 10px; text-align:left; cursor:pointer;">
+                  <span style="display:block; font-size:9px; font-weight:600; letter-spacing:0.6px; text-transform:uppercase; color:var(--muted);">{{ m.label }}</span>
+                  <span style="font-size:18px; font-variant-numeric:tabular-nums; color:{{ m.color }};">{{ m.value }}<span style="font-size:10px; color:var(--text2);"> {{ m.unit }}</span></span>
+                </button>
+              </sc-for>
+            </div>
+            <div style="flex:1; background:var(--card); border:1px solid var(--border); border-radius:12px; padding:10px 12px; display:flex; gap:8px; min-height:0;">
+              <div style="display:flex; flex-direction:column; justify-content:space-between; font-size:9px; color:var(--muted); text-align:right; padding:2px 0 14px; font-variant-numeric:tabular-nums;">
+                <span>{{ heroPowMax }}</span><span>{{ heroPowMid }}</span><span>{{ heroPowMin }}</span>
+              </div>
+              <div style="flex:1; display:flex; flex-direction:column; min-height:0;">
+                <svg viewBox="0 0 640 170" preserveAspectRatio="none" style="width:100%; flex:1; min-height:0;">
+                  <line x1="0" y1="1" x2="640" y2="1" stroke="var(--grid)" stroke-width="1" vector-effect="non-scaling-stroke"></line>
+                  <line x1="0" y1="85" x2="640" y2="85" stroke="var(--grid)" stroke-width="1" vector-effect="non-scaling-stroke"></line>
+                  <line x1="0" y1="169" x2="640" y2="169" stroke="var(--grid)" stroke-width="1" vector-effect="non-scaling-stroke"></line>
+                  <line x1="160" y1="0" x2="160" y2="170" stroke="var(--grid)" stroke-width="1" vector-effect="non-scaling-stroke"></line>
+                  <line x1="320" y1="0" x2="320" y2="170" stroke="var(--grid)" stroke-width="1" vector-effect="non-scaling-stroke"></line>
+                  <line x1="480" y1="0" x2="480" y2="170" stroke="var(--grid)" stroke-width="1" vector-effect="non-scaling-stroke"></line>
+                  <path d="{{ heroPowBars }}" fill="{{ heroPowColor }}" fill-opacity="0.85"></path>
+                </svg>
+                <div style="display:flex; justify-content:space-between; font-size:9px; color:var(--muted); padding-top:3px;">
+                  <span>-60m</span><span>-45m</span><span>-30m</span><span>-15m</span><span>now</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          </sc-if>
+
+          <sc-if value="{{ powC }}" hint-placeholder-val="{{ false }}">
+          <div style="flex:1; display:flex; flex-direction:column; gap:8px; min-height:0;">
+            <div style="flex:1; background:var(--card); border:1px solid var(--border); border-radius:12px; padding:10px 12px; display:flex; flex-direction:column; min-height:0;">
+              <div style="display:flex; justify-content:space-between; align-items:baseline;">
+                <span style="font-size:9px; font-weight:600; letter-spacing:0.7px; text-transform:uppercase; color:var(--muted);">{{ heroPowLabel }}</span>
+                <span style="font-size:20px; font-variant-numeric:tabular-nums; color:{{ heroPowColor }};">{{ heroPowValue }}</span>
+              </div>
+              <svg viewBox="0 0 640 130" preserveAspectRatio="none" style="width:100%; flex:1; min-height:0;">
+                <line x1="0" y1="65" x2="640" y2="65" stroke="var(--grid)" stroke-width="1" vector-effect="non-scaling-stroke"></line>
+                <path d="{{ heroPowBars2 }}" fill="{{ heroPowColor }}" fill-opacity="0.85"></path>
+              </svg>
+              <div style="display:flex; justify-content:space-between; font-size:9px; color:var(--muted);"><span>-60m</span><span>-30m</span><span>now</span></div>
+            </div>
+            <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:8px; height:104px;">
+              <sc-for list="{{ powerCards }}" as="m" hint-placeholder-count="4">
+                <button onClick="{{ m.onSel }}" style="background:{{ m.pillBg }}; border:1px solid {{ m.pillBc }}; border-radius:10px; padding:8px 10px 6px; text-align:left; cursor:pointer; display:flex; flex-direction:column; min-height:0;">
+                  <span style="font-size:9px; font-weight:600; letter-spacing:0.6px; text-transform:uppercase; color:var(--muted);">{{ m.label }}</span>
+                  <span style="font-size:15px; font-variant-numeric:tabular-nums; color:{{ m.color }};">{{ m.value }}<span style="font-size:9px; color:var(--text2);"> {{ m.unit }}</span></span>
+                  <svg viewBox="0 0 100 22" preserveAspectRatio="none" style="width:100%; flex:1; min-height:0;">
+                    <path d="{{ m.bars22 }}" fill="{{ m.color }}" fill-opacity="0.85"></path>
+                  </svg>
+                </button>
+              </sc-for>
+            </div>
+          </div>
+          </sc-if>
+        </div>
+        </sc-if>
+
+        <sc-if value="{{ isAir }}" hint-placeholder-val="{{ false }}">
+        <div data-screen-label="Air Quality" style="position:absolute; inset:0; padding:12px; display:flex; flex-direction:column; gap:8px; animation:viewIn 0.2s ease both;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:12px; font-weight:600;">Air Quality · last 1 hr</span>
+            <span style="display:inline-flex; gap:3px; background:var(--card2); border:1px solid var(--border); border-radius:9999px; padding:3px;">
+              <sc-for list="{{ aqVariants }}" as="v" hint-placeholder-count="3">
+                <button onClick="{{ v.onSel }}" style="font-size:9px; font-weight:600; letter-spacing:0.5px; text-transform:uppercase; padding:4px 10px; border:0; border-radius:9999px; cursor:pointer; background:{{ v.bg }}; color:{{ v.fg }};">{{ v.label }}</button>
+              </sc-for>
+            </span>
+          </div>
+
+          <sc-if value="{{ aqA }}" hint-placeholder-val="{{ true }}">
+          <div style="flex:1; display:grid; grid-template-columns:repeat(3,1fr); grid-template-rows:1fr 1fr; gap:8px; min-height:0;">
+            <sc-for list="{{ aqCards }}" as="m" hint-placeholder-count="5">
+              <div style="background:var(--card); border:1px solid var(--border); border-radius:12px; padding:10px; display:flex; flex-direction:column; min-height:0;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <span style="font-size:9px; font-weight:600; letter-spacing:0.7px; text-transform:uppercase; color:var(--muted);">{{ m.label }}</span>
+                  <span style="font-size:9px; font-weight:600; letter-spacing:0.4px; text-transform:uppercase; padding:2px 6px; border-radius:4px; background:{{ m.badgeBg }}; color:{{ m.badgeFg }};">{{ m.status }}</span>
+                </div>
+                <div style="display:flex; align-items:baseline; gap:3px; margin:4px 0;">
+                  <span style="font-size:22px; font-weight:400; line-height:1; font-variant-numeric:tabular-nums; color:{{ m.color }};">{{ m.value }}</span>
+                  <span style="font-size:10px; color:var(--text2);">{{ m.unit }}</span>
+                </div>
+                <svg viewBox="0 0 100 26" preserveAspectRatio="none" style="width:100%; flex:1; min-height:0;">
+                  <path d="{{ m.bars26 }}" fill="{{ m.color }}" fill-opacity="0.85"></path>
+                </svg>
+              </div>
+            </sc-for>
+            <div style="background:var(--accent-soft); border:1px solid var(--accent); border-radius:12px; padding:10px; display:flex; flex-direction:column; justify-content:center; gap:4px;">
+              <span style="font-size:9px; font-weight:600; letter-spacing:0.7px; text-transform:uppercase; color:var(--accent);">Recommendation</span>
+              <span style="font-size:14px; color:var(--text);">{{ aqRecommendation }}</span>
+            </div>
+          </div>
+          </sc-if>
+
+          <sc-if value="{{ aqB }}" hint-placeholder-val="{{ false }}">
+          <div style="flex:1; display:grid; grid-template-columns:250px 1fr; gap:8px; min-height:0;">
+            <div style="background:var(--card); border:1px solid var(--border); border-radius:12px; padding:6px; display:flex; flex-direction:column; gap:3px; overflow:auto;">
+              <sc-for list="{{ aqCards }}" as="m" hint-placeholder-count="5">
+                <button onClick="{{ m.onSel }}" style="display:flex; justify-content:space-between; align-items:center; padding:9px 10px; border-radius:8px; border:0; cursor:pointer; background:{{ m.rowBg }}; text-align:left;">
+                  <span style="font-size:11px; font-weight:500; color:var(--text);">{{ m.label }}</span>
+                  <span style="font-size:13px; font-variant-numeric:tabular-nums; color:{{ m.color }};">{{ m.value }} <span style="font-size:9px; color:var(--muted);">{{ m.unit }}</span></span>
+                </button>
+              </sc-for>
+            </div>
+            <div style="background:var(--card); border:1px solid var(--border); border-radius:12px; padding:10px 12px; display:flex; gap:8px; min-height:0;">
+              <div style="display:flex; flex-direction:column; justify-content:space-between; font-size:9px; color:var(--muted); text-align:right; padding:2px 0 14px; font-variant-numeric:tabular-nums;">
+                <span>{{ heroAqMax }}</span><span>{{ heroAqMid }}</span><span>{{ heroAqMin }}</span>
+              </div>
+              <div style="flex:1; display:flex; flex-direction:column; min-height:0;">
+                <svg viewBox="0 0 560 180" preserveAspectRatio="none" style="width:100%; flex:1; min-height:0;">
+                  <line x1="0" y1="1" x2="560" y2="1" stroke="var(--grid)" stroke-width="1" vector-effect="non-scaling-stroke"></line>
+                  <line x1="0" y1="90" x2="560" y2="90" stroke="var(--grid)" stroke-width="1" vector-effect="non-scaling-stroke"></line>
+                  <line x1="0" y1="179" x2="560" y2="179" stroke="var(--grid)" stroke-width="1" vector-effect="non-scaling-stroke"></line>
+                  <line x1="140" y1="0" x2="140" y2="180" stroke="var(--grid)" stroke-width="1" vector-effect="non-scaling-stroke"></line>
+                  <line x1="280" y1="0" x2="280" y2="180" stroke="var(--grid)" stroke-width="1" vector-effect="non-scaling-stroke"></line>
+                  <line x1="420" y1="0" x2="420" y2="180" stroke="var(--grid)" stroke-width="1" vector-effect="non-scaling-stroke"></line>
+                  <path d="{{ heroAqBars }}" fill="{{ heroAqColor }}" fill-opacity="0.85"></path>
+                </svg>
+                <div style="display:flex; justify-content:space-between; font-size:9px; color:var(--muted); padding-top:3px;">
+                  <span>-60m</span><span>-45m</span><span>-30m</span><span>-15m</span><span>now</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          </sc-if>
+
+          <sc-if value="{{ aqC }}" hint-placeholder-val="{{ false }}">
+          <div style="flex:1; display:flex; flex-direction:column; gap:8px; min-height:0;">
+            <div style="flex:1; background:var(--card); border:1px solid var(--border); border-radius:12px; padding:10px 12px; display:flex; flex-direction:column; min-height:0;">
+              <div style="display:flex; justify-content:space-between; align-items:baseline;">
+                <span style="font-size:9px; font-weight:600; letter-spacing:0.7px; text-transform:uppercase; color:var(--muted);">{{ heroAqLabel }}</span>
+                <span style="font-size:20px; font-variant-numeric:tabular-nums; color:{{ heroAqColor }};">{{ heroAqValue }}</span>
+              </div>
+              <svg viewBox="0 0 640 120" preserveAspectRatio="none" style="width:100%; flex:1; min-height:0;">
+                <line x1="0" y1="60" x2="640" y2="60" stroke="var(--grid)" stroke-width="1" vector-effect="non-scaling-stroke"></line>
+                <path d="{{ heroAqBars2 }}" fill="{{ heroAqColor }}" fill-opacity="0.85"></path>
+              </svg>
+              <div style="display:flex; justify-content:space-between; font-size:9px; color:var(--muted);"><span>-60m</span><span>-30m</span><span>now</span></div>
+            </div>
+            <div style="display:grid; grid-template-columns:repeat(5,1fr); gap:8px; height:104px;">
+              <sc-for list="{{ aqCards }}" as="m" hint-placeholder-count="5">
+                <button onClick="{{ m.onSel }}" style="background:{{ m.pillBg }}; border:1px solid {{ m.pillBc }}; border-radius:10px; padding:8px 10px 6px; text-align:left; cursor:pointer; display:flex; flex-direction:column; min-height:0;">
+                  <span style="font-size:9px; font-weight:600; letter-spacing:0.6px; text-transform:uppercase; color:var(--muted);">{{ m.label }}</span>
+                  <span style="font-size:14px; font-variant-numeric:tabular-nums; color:{{ m.color }};">{{ m.value }}<span style="font-size:9px; color:var(--text2);"> {{ m.unit }}</span></span>
+                  <svg viewBox="0 0 100 22" preserveAspectRatio="none" style="width:100%; flex:1; min-height:0;">
+                    <path d="{{ m.bars22 }}" fill="{{ m.color }}" fill-opacity="0.85"></path>
+                  </svg>
+                </button>
+              </sc-for>
+            </div>
+          </div>
+          </sc-if>
+        </div>
+        </sc-if>
+
+        <sc-if value="{{ isWater }}" hint-placeholder-val="{{ false }}">
+        <div data-screen-label="Water" style="position:absolute; inset:0; padding:12px; display:grid; grid-template-columns:1fr 1fr 1fr 240px; gap:10px; animation:viewIn 0.2s ease both;">
+          <sc-for list="{{ tanks }}" as="t" hint-placeholder-count="3">
+            <div style="background:var(--card); border:1px solid {{ t.bc }}; border-radius:12px; padding:14px; display:flex; flex-direction:column; align-items:center; justify-content:space-between;">
+              <span style="font-size:12px; font-weight:500;">{{ t.label }}</span>
+              <div style="width:40px; height:250px; background:var(--card2); border-radius:6px; overflow:hidden; position:relative;">
+                <span style="position:absolute; bottom:0; left:0; right:0; height:{{ t.h }}; background:{{ t.fill }}; transition:height 0.3s ease;"></span>
+              </div>
+              <div style="text-align:center;">
+                <span style="display:block; font-size:26px; font-weight:300; font-variant-numeric:tabular-nums; color:{{ t.pctColor }};">{{ t.pct }}%</span>
+                <span style="font-size:9px; text-transform:uppercase; letter-spacing:0.6px; color:var(--muted);">{{ t.gal }} gal</span>
+              </div>
+            </div>
+          </sc-for>
+          <div style="display:flex; flex-direction:column; gap:10px;">
+            <button onClick="{{ pumpToggle }}" style="background:{{ pumpBg }}; border:1px solid {{ pumpBc }}; border-radius:12px; padding:14px; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:6px; color:{{ pumpFg }}; box-shadow:{{ pumpGlow }};">
+              <ion-icon name="water" style="font-size:24px;"></ion-icon>
+              <span style="font-size:11px; font-weight:600;">Water Pump</span>
+              <span style="font-size:9px; letter-spacing:0.6px; text-transform:uppercase;">{{ pumpState }}</span>
+            </button>
+            <div style="flex:1; background:var(--card); border:1px solid var(--border); border-radius:12px; padding:12px; display:flex; flex-direction:column; gap:2px;">
+              <span style="font-size:9px; font-weight:600; letter-spacing:0.7px; text-transform:uppercase; color:var(--muted); margin-bottom:4px;">Usage</span>
+              <div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid var(--border);"><span style="font-size:11px; color:var(--muted);">Fresh, today</span><span style="font-size:12px; font-variant-numeric:tabular-nums;">6.4 gal</span></div>
+              <div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid var(--border);"><span style="font-size:11px; color:var(--muted);">Days remaining</span><span style="font-size:12px; font-variant-numeric:tabular-nums;">4.5</span></div>
+              <div style="display:flex; justify-content:space-between; padding:6px 0;"><span style="font-size:11px; color:var(--muted);">Black, capacity</span><span style="font-size:12px; font-variant-numeric:tabular-nums;">28 gal</span></div>
+            </div>
+          </div>
+        </div>
+        </sc-if>
+
+        <sc-if value="{{ isSettings }}" hint-placeholder-val="{{ false }}">
+        <div data-screen-label="Settings" style="position:absolute; inset:0; padding:12px; display:grid; grid-template-columns:1fr 1fr; gap:10px; align-content:start; overflow:auto; animation:viewIn 0.2s ease both;">
+          <div style="background:var(--card); border:1px solid var(--border); border-radius:12px; padding:12px;">
+            <span style="font-size:9px; font-weight:600; letter-spacing:0.7px; text-transform:uppercase; color:var(--muted);">Appearance</span>
+            <div style="display:flex; gap:8px; margin-top:8px;">
+              <button onClick="{{ setLight }}" style="flex:1; padding:9px; border-radius:8px; border:1px solid {{ lightBtnBc }}; background:{{ lightBtnBg }}; color:{{ lightBtnFg }}; font-size:11px; font-weight:600; cursor:pointer;">Light</button>
+              <button onClick="{{ setDark }}" style="flex:1; padding:9px; border-radius:8px; border:1px solid {{ darkBtnBc }}; background:{{ darkBtnBg }}; color:{{ darkBtnFg }}; font-size:11px; font-weight:600; cursor:pointer;">Dark</button>
+            </div>
+          </div>
+          <div style="background:var(--card); border:1px solid var(--border); border-radius:12px; padding:12px;">
+            <span style="font-size:9px; font-weight:600; letter-spacing:0.7px; text-transform:uppercase; color:var(--muted);">Temperature Readings</span>
+            <div style="display:flex; gap:8px; margin-top:8px;">
+              <button onClick="{{ setF }}" style="flex:1; padding:9px; border-radius:8px; border:1px solid {{ fBtnBc }}; background:{{ fBtnBg }}; color:{{ fBtnFg }}; font-size:11px; font-weight:600; cursor:pointer;">°F</button>
+              <button onClick="{{ setC }}" style="flex:1; padding:9px; border-radius:8px; border:1px solid {{ cBtnBc }}; background:{{ cBtnBg }}; color:{{ cBtnFg }}; font-size:11px; font-weight:600; cursor:pointer;">°C</button>
+            </div>
+          </div>
+          <div style="background:var(--card); border:1px solid var(--border); border-radius:12px; padding:12px;">
+            <span style="font-size:9px; font-weight:600; letter-spacing:0.7px; text-transform:uppercase; color:var(--muted);">Screen Brightness</span>
+            <input type="range" min="10" max="100" value="{{ brightness }}" onChange="{{ setBrightness }}" style="width:100%; margin-top:12px; accent-color:var(--accent);">
+            <div style="display:flex; justify-content:space-between; font-size:10px; color:var(--muted);"><span>10%</span><span style="font-variant-numeric:tabular-nums;">{{ brightness }}%</span><span>100%</span></div>
+          </div>
+          <div style="background:var(--card); border:1px solid var(--border); border-radius:12px; padding:12px;">
+            <span style="font-size:9px; font-weight:600; letter-spacing:0.7px; text-transform:uppercase; color:var(--muted);">Screen Timeout</span>
+            <div style="display:flex; align-items:center; gap:12px; margin-top:8px;">
+              <button onClick="{{ timeoutDown }}" style="width:34px; height:34px; border-radius:8px; background:var(--card2); border:1px solid var(--border); color:var(--text); font-size:16px; cursor:pointer;">−</button>
+              <span style="flex:1; text-align:center; font-size:15px; font-variant-numeric:tabular-nums;">{{ timeoutLabel }}</span>
+              <button onClick="{{ timeoutUp }}" style="width:34px; height:34px; border-radius:8px; background:var(--card2); border:1px solid var(--border); color:var(--text); font-size:16px; cursor:pointer;">+</button>
+            </div>
+          </div>
+          <div style="background:var(--card); border:1px solid var(--border); border-radius:12px; padding:12px;">
+            <span style="font-size:9px; font-weight:600; letter-spacing:0.7px; text-transform:uppercase; color:var(--muted);">Time Zone</span>
+            <select value="{{ timezone }}" onChange="{{ setTimezone }}" style="width:100%; margin-top:8px; padding:8px; border-radius:8px; border:1px solid var(--border); background:var(--card2); color:var(--text); font-size:12px;">
+              <option value="America/New_York">America/New_York</option>
+              <option value="America/Chicago">America/Chicago</option>
+              <option value="America/Denver">America/Denver</option>
+              <option value="America/Los_Angeles">America/Los_Angeles</option>
+              <option value="America/Phoenix">America/Phoenix</option>
+            </select>
+          </div>
+          <div style="background:var(--card); border:1px solid var(--border); border-radius:12px; padding:12px;">
+            <span style="font-size:9px; font-weight:600; letter-spacing:0.7px; text-transform:uppercase; color:var(--muted);">About</span>
+            <div style="display:flex; justify-content:space-between; padding:7px 0; border-bottom:1px solid var(--border); margin-top:4px;"><span style="font-size:11px; color:var(--muted);">Version</span><span style="font-size:12px; font-variant-numeric:tabular-nums;">2.4.0</span></div>
+            <div style="display:flex; justify-content:space-between; padding:7px 0; border-bottom:1px solid var(--border);"><span style="font-size:11px; color:var(--muted);">Display</span><span style="font-size:12px;">CrowPanel 10.1" ESP32-P4</span></div>
+            <div style="display:flex; justify-content:space-between; padding:7px 0;"><span style="font-size:11px; color:var(--muted);">MAC</span><span style="font-size:12px; font-variant-numeric:tabular-nums;">A0:B7:65:4C:21:E8</span></div>
+          </div>
+        </div>
+        </sc-if>
+
+      </div>
+
+      <div style="display:flex; align-items:stretch; background:var(--bar); border-top:1px solid var(--border); padding:4px 8px; gap:4px; z-index:5;">
+        <sc-for list="{{ navTabs }}" as="t" hint-placeholder-count="6">
+          <button onClick="{{ t.onSel }}" style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px; border:0; border-radius:8px; cursor:pointer; background:{{ t.bg }}; color:{{ t.fg }}; transition:all 0.15s ease; padding:2px;">
+            <ion-icon name="{{ t.icon }}" style="font-size:17px;"></ion-icon>
+            <span style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size:11px; font-weight:500; letter-spacing:0.5px;">{{ t.label }}</span>
+          </button>
+        </sc-for>
+      </div>
+
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1150,&quot;height&quot;:720},&quot;startPage&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;home&quot;,&quot;trailer&quot;,&quot;power&quot;,&quot;water&quot;,&quot;air&quot;,&quot;settings&quot;],&quot;default&quot;:&quot;home&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Demo&quot;},&quot;hour24&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Clock&quot;},&quot;alertDemo&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Demo&quot;}}">
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    const walk = (base, vol, min, max, n) => {
+      const a = [base]; let v = base;
+      for (let i = 1; i < n; i++) { v += (Math.random() - 0.5) * vol + (base - v) * 0.05; v = Math.max(min, Math.min(max, v)); a.push(v); }
+      return a;
+    };
+    this.state = {
+      page: this.props.startPage ?? 'home',
+      dark: false,
+      powVar: 'a', aqVar: 'a', powHero: 'solar', aqHero: 'temp',
+      target: 72, tempUnit: 'F', brightness: 80, timeout: 60, timezone: 'America/Denver',
+      now: new Date(),
+      devices: [
+        { label: 'Under Cabinet', icon: 'cafe', on: false }, { label: 'Kitchen Lights', icon: 'restaurant', on: true },
+        { label: 'Entry Lights', icon: 'enter', on: false }, { label: 'Main Lights', icon: 'bulb', on: true },
+        { label: 'Porch Light', icon: 'storefront', on: false }, { label: 'Trailer Lights', icon: 'car', on: false },
+        { label: 'Water Pump', icon: 'water', on: true }, { label: 'Power Outlet', icon: 'flash', on: false }
+      ],
+      s: {
+        solar: walk(620, 90, 0, 900, 61), load: walk(240, 55, 60, 600, 61),
+        soc: walk(78, 0.5, 60, 92, 61), volts: walk(13.4, 0.08, 12.8, 14.1, 61),
+        temp: walk(71, 0.7, 66, 78, 61), hum: walk(46, 1.6, 35, 60, 61),
+        eco2: walk(640, 45, 420, 1100, 61), tvoc: walk(120, 22, 40, 320, 61), co: walk(1.2, 0.25, 0, 4, 61)
+      }
+    };
+  }
+  componentDidMount() {
+    document.body.classList.toggle('dark', this.state.dark);
+    this.timer = setInterval(() => {
+      this.setState(st => {
+        const s = {};
+        const cfg = { solar:[620,90,0,900], load:[240,55,60,600], soc:[78,0.5,60,92], volts:[13.4,0.08,12.8,14.1], temp:[71,0.7,66,78], hum:[46,1.6,35,60], eco2:[640,45,420,1100], tvoc:[120,22,40,320], co:[1.2,0.25,0,4] };
+        for (const k in st.s) {
+          const a = st.s[k].slice(1); const [b, vol, mn, mx] = cfg[k];
+          let v = a[a.length - 1] + (Math.random() - 0.5) * vol + (b - a[a.length - 1]) * 0.05;
+          a.push(Math.max(mn, Math.min(mx, v))); s[k] = a;
+        }
+        return { s, now: new Date() };
+      });
+    }, 1500);
+  }
+  componentWillUnmount() { clearInterval(this.timer); }
+  path(arr, w, h, area) {
+    const mn = Math.min(...arr), mx = Math.max(...arr), r = (mx - mn) || 1, pad = h * 0.12;
+    let d = arr.map((v, i) => (i ? 'L' : 'M') + (i / (arr.length - 1) * w).toFixed(1) + ',' + (h - pad - ((v - mn) / r) * (h - 2 * pad)).toFixed(1)).join(' ');
+    if (area) d += ' L' + w + ',' + h + ' L0,' + h + ' Z';
+    return d;
+  }
+  bars(arr, w, h, count) {
+    if (!arr || !arr.length) return '';
+    const n = arr.length, s = new Array(count);
+    for (let i = 0; i < count; i++) s[i] = arr[Math.min(n - 1, Math.floor(i * n / count))];
+    const mn = Math.min(...s), mx = Math.max(...s), r = (mx - mn) || 1;
+    const slot = w / count, bw = slot * 0.68, gap = (slot - bw) / 2;
+    let d = '';
+    for (let i = 0; i < count; i++) {
+      const bh = h * (0.08 + ((s[i] - mn) / r) * 0.84);
+      const x1 = (i * slot + gap).toFixed(2), x2 = (i * slot + gap + bw).toFixed(2), y1 = (h - bh).toFixed(2);
+      d += 'M' + x1 + ',' + y1 + ' H' + x2 + ' V' + h + ' H' + x1 + ' Z ';
+    }
+    return d;
+  }
+  toF(c) { return this.state.tempUnit === 'F' ? c : (c - 32) * 5 / 9; }
+  renderVals() {
+    const st = this.state, s = st.s, last = a => a[a.length - 1];
+    const nav = id => () => this.setState({ page: id });
+    const hr = st.now.getHours(), h24 = this.props.hour24 ?? false;
+    const hh = h24 ? String(hr).padStart(2, '0') : String(((hr + 11) % 12) + 1);
+    const greeting = hr < 12 ? 'Good Morning' : hr < 17 ? 'Good Afternoon' : 'Good Evening';
+    const cur = Math.round(this.toF(last(s.temp)));
+    const heating = st.target > cur, cooling = st.target < cur - 2;
+    const soc = last(s.soc), socColor = soc < 30 ? 'var(--danger)' : 'var(--accent)';
+    const powMeta = {
+      solar: { label: 'Solar Input', icon: 'sunny-outline', color: 'var(--solar)', unit: 'W', fmt: v => Math.round(v) },
+      soc:   { label: 'Battery Level', icon: 'battery-half-outline', color: 'var(--accent)', unit: '%', fmt: v => Math.round(v) },
+      volts: { label: 'Battery Voltage', icon: 'flash-outline', color: 'var(--slate)', unit: 'V', fmt: v => v.toFixed(1) },
+      load:  { label: 'Consumption', icon: 'swap-vertical-outline', color: 'var(--info)', unit: 'W', fmt: v => Math.round(v) }
+    };
+    const aqStatus = {
+      temp: v => 'Good', hum: v => (v < 30 || v > 60) ? 'Warning' : 'Good',
+      eco2: v => v < 800 ? 'Good' : v < 1200 ? 'Moderate' : 'Unhealthy',
+      tvoc: v => v < 220 ? 'Good' : v < 660 ? 'Moderate' : 'Unhealthy',
+      co:   v => v < 9 ? 'Good' : v < 35 ? 'Warning' : 'Critical'
+    };
+    const aqMeta = {
+      temp: { label: 'Temperature', color: 'var(--danger)', unit: '°' + st.tempUnit, fmt: v => Math.round(this.toF(v)) },
+      hum:  { label: 'Humidity', color: 'var(--info)', unit: '%', fmt: v => Math.round(v) },
+      eco2: { label: 'eCO2', color: 'var(--accent)', unit: 'ppm', fmt: v => Math.round(v) },
+      tvoc: { label: 'TVOC', color: 'var(--solar)', unit: 'ppb', fmt: v => Math.round(v) },
+      co:   { label: 'CO', color: 'var(--slate)', unit: 'ppm', fmt: v => v.toFixed(1) }
+    };
+    const mkCards = (keys, meta, heroKey, heroField, withStatus) => keys.map(k => {
+      const m = meta[k], v = last(s[k]), sel = heroKey === k;
+      const status = withStatus ? aqStatus[k](k === 'temp' ? this.toF(v) : v) : null;
+      const good = status === 'Good';
+      return {
+        id: k, label: m.label, icon: m.icon, color: m.color, unit: m.unit, value: String(m.fmt(v)),
+        bars26: this.bars(s[k], 100, 26, 24), bars22: this.bars(s[k], 100, 22, 24),
+        onSel: () => this.setState({ [heroField]: k }),
+        pillBg: sel ? 'var(--accent-soft)' : 'var(--card)', pillBc: sel ? 'var(--accent)' : 'var(--border)',
+        rowBg: sel ? 'var(--accent-soft)' : 'transparent',
+        status, badgeBg: good ? 'var(--accent-soft)' : 'rgba(199,138,0,0.15)', badgeFg: good ? 'var(--accent)' : 'var(--solar)'
+      };
+    });
+    const powerCards = mkCards(['solar', 'soc', 'volts', 'load'], powMeta, st.powHero, 'powHero', false);
+    const aqCards = mkCards(['temp', 'hum', 'eco2', 'tvoc', 'co'], aqMeta, st.aqHero, 'aqHero', true);
+    const heroP = s[st.powHero], heroPm = powMeta[st.powHero];
+    const heroA = s[st.aqHero], heroAm = aqMeta[st.aqHero];
+    const rng = a => { const mn = Math.min(...a), mx = Math.max(...a); return [mn, (mn + mx) / 2, mx]; };
+    const [pMin, pMid, pMax] = rng(heroP), [aMin, aMid, aMax] = rng(heroA);
+    const fmtAx = (v, m) => typeof m.fmt(v) === 'string' ? m.fmt(v) : String(m.fmt(v));
+    const hoursLeft = soc / 100 * 400 / Math.max(60, last(s.load));
+    const eco2v = last(s.eco2);
+    const variantBtns = (list, cur, field) => list.map(([id, label]) => ({
+      id, label, onSel: () => this.setState({ [field]: id }),
+      bg: cur === id ? 'var(--accent)' : 'transparent', fg: cur === id ? '#fff' : 'var(--text2)'
+    }));
+    const seg = (on) => ({ bg: on ? 'var(--accent)' : 'var(--card2)', fg: on ? '#fff' : 'var(--text2)', bc: on ? 'var(--accent)' : 'var(--border)' });
+    const lightB = seg(!st.dark), darkB = seg(st.dark), fB = seg(st.tempUnit === 'F'), cB = seg(st.tempUnit === 'C');
+    const tankData = [
+      { label: 'Fresh', pct: 76, gal: 32, fill: 'linear-gradient(to top,#0088cc,#48e6fe)' },
+      { label: 'Grey', pct: 41, gal: 12, fill: 'linear-gradient(to top,#777,#b5b5b5)' },
+      { label: 'Black', pct: 68, gal: 19, fill: 'linear-gradient(to top,#333,#666)' }
+    ].map(t => ({ ...t, pct: String(t.pct), h: t.pct + '%', gal: String(t.gal), bc: t.pct >= 90 ? 'var(--danger)' : 'var(--border)', pctColor: 'var(--text)' }));
+    const pump = st.devices[6].on;
+    const roll = last(s.volts) * 0 + 2.1;
+    const tabs = [
+      ['home', 'home', 'Home'], ['trailer', 'car', 'Trailer'], ['power', 'flash', 'Power'],
+      ['water', 'water', 'Water'], ['air', 'cloud', 'Air'], ['settings', 'settings', 'Settings']
+    ].map(([id, icon, label]) => ({
+      id, label, icon: st.page === id ? icon : icon + '-outline', onSel: nav(id),
+      bg: st.page === id ? 'var(--accent-soft)' : 'transparent', fg: st.page === id ? 'var(--accent)' : 'var(--text2)'
+    }));
+    return {
+      greeting, clockShort: hh + ':' + String(st.now.getMinutes()).padStart(2, '0') + (h24 ? '' : (hr < 12 ? ' AM' : ' PM')),
+      clockHours: hh, clockMinutes: String(st.now.getMinutes()).padStart(2, '0'),
+      showAmPm: !h24, clockAmPm: hr < 12 ? 'AM' : 'PM',
+      weekday: st.now.toLocaleDateString('en-US', { weekday: 'long' }),
+      dateLong: st.now.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+      themeIcon: st.dark ? 'sunny-outline' : 'moon-outline',
+      toggleTheme: () => { const d = !st.dark; this.setState({ dark: d }); document.body.classList.toggle('dark', d); },
+      showBadge: this.props.alertDemo ?? false, badgeCount: '2',
+      isHome: st.page === 'home', isTrailer: st.page === 'trailer', isPower: st.page === 'power',
+      isAir: st.page === 'air', isWater: st.page === 'water', isSettings: st.page === 'settings',
+      navTabs: tabs,
+      devices: st.devices.map((d, i) => ({
+        label: d.label, icon: d.on ? d.icon : d.icon + '-outline',
+        bg: d.on ? 'var(--accent-soft)' : 'var(--card)', bc: d.on ? 'var(--accent)' : 'var(--border)',
+        fg: d.on ? 'var(--accent)' : 'var(--text2)', glow: d.on ? 'var(--accent-glow)' : 'none',
+        onToggle: () => this.setState(x => { const dv = x.devices.slice(); dv[i] = { ...dv[i], on: !dv[i].on }; return { devices: dv }; })
+      })),
+      frontAngle: '1.2', backAngle: '-0.8', leftAngle: '0.3', rightAngle: '2.1',
+      pitchBx: 'calc(50% + 14px - 8px)', pitchBy: 'calc(50% - 6px - 8px)',
+      rollBx: 'calc(50% + 24px - 8px)', rollBy: 'calc(50% + 4px - 8px)',
+      pitchStatus: 'Level', rollStatus: 'Tilted right',
+      rollBadgeBg: 'rgba(199,138,0,0.15)', rollBadgeFg: 'var(--solar)',
+      gnssRows: [
+        { k: 'Latitude', v: '39.7392° N' }, { k: 'Longitude', v: '104.9903° W' },
+        { k: 'Elevation', v: '5,280 ft' }, { k: 'Satellites', v: '14' },
+        { k: 'Mode', v: 'RTK Float' }, { k: 'Speed', v: '0.0 mph' }
+      ],
+      powerVariants: variantBtns([['a', 'A · Sparks'], ['b', 'B · Axes'], ['c', 'C · Hybrid']], st.powVar, 'powVar'),
+      aqVariants: variantBtns([['a', 'A · Sparks'], ['b', 'B · Axes'], ['c', 'C · Hybrid']], st.aqVar, 'aqVar'),
+      powA: st.powVar === 'a', powB: st.powVar === 'b', powC: st.powVar === 'c',
+      aqA: st.aqVar === 'a', aqB: st.aqVar === 'b', aqC: st.aqVar === 'c',
+      powerCards, aqCards,
+      chargeType: 'Bulk', socColor,
+      timeRemaining: Math.floor(hoursLeft) + 'h ' + String(Math.round(hoursLeft % 1 * 60)).padStart(2, '0') + 'm',
+      loadNow: String(Math.round(last(s.load))),
+      heroPowLabel: heroPm.label + ' · last 1 hr', heroPowValue: heroPm.fmt(last(heroP)) + ' ' + heroPm.unit, heroPowColor: heroPm.color,
+      heroPowBars: this.bars(heroP.slice(-60), 640, 170, 60),
+      heroPowBars2: this.bars(heroP.slice(-60), 640, 130, 60),
+      heroPowMax: fmtAx(pMax, heroPm), heroPowMid: fmtAx(pMid, heroPm), heroPowMin: fmtAx(pMin, heroPm),
+      heroAqLabel: heroAm.label + ' · last 1 hr', heroAqValue: heroAm.fmt(last(heroA)) + ' ' + heroAm.unit, heroAqColor: heroAm.color,
+      heroAqBars: this.bars(heroA.slice(-60), 560, 180, 60),
+      heroAqBars2: this.bars(heroA.slice(-60), 640, 120, 60),
+      heroAqMax: fmtAx(aMax, heroAm), heroAqMid: fmtAx(aMid, heroAm), heroAqMin: fmtAx(aMin, heroAm),
+      aqRecommendation: eco2v < 800 ? 'Air quality is good' : eco2v < 1000 ? 'Consider ventilating' : eco2v < 1200 ? 'Ventilation recommended' : 'Ventilation needed',
+      tanks: tankData,
+      pumpToggle: () => this.setState(x => { const dv = x.devices.slice(); dv[6] = { ...dv[6], on: !dv[6].on }; return { devices: dv }; }),
+      pumpBg: pump ? 'var(--accent-soft)' : 'var(--card)', pumpBc: pump ? 'var(--accent)' : 'var(--border)',
+      pumpFg: pump ? 'var(--accent)' : 'var(--text2)', pumpGlow: pump ? 'var(--accent-glow)' : 'none',
+      pumpState: pump ? 'On' : 'Off',
+      setLight: () => { this.setState({ dark: false }); document.body.classList.remove('dark'); },
+      setDark: () => { this.setState({ dark: true }); document.body.classList.add('dark'); },
+      lightBtnBg: lightB.bg, lightBtnFg: lightB.fg, lightBtnBc: lightB.bc,
+      darkBtnBg: darkB.bg, darkBtnFg: darkB.fg, darkBtnBc: darkB.bc,
+      setF: () => this.setState({ tempUnit: 'F' }), setC: () => this.setState({ tempUnit: 'C' }),
+      fBtnBg: fB.bg, fBtnFg: fB.fg, fBtnBc: fB.bc, cBtnBg: cB.bg, cBtnFg: cB.fg, cBtnBc: cB.bc,
+      brightness: st.brightness, setBrightness: e => this.setState({ brightness: +e.target.value }),
+      timeoutLabel: st.timeout >= 60 ? (st.timeout / 60) + ' min' : st.timeout + ' sec',
+      timeoutUp: () => this.setState(x => ({ timeout: Math.min(600, x.timeout + 30) })),
+      timeoutDown: () => this.setState(x => ({ timeout: Math.max(30, x.timeout - 30) })),
+      timezone: st.timezone, setTimezone: e => this.setState({ timezone: e.target.value })
+    };
+  }
+}
+</script>
+</body>
+</html>

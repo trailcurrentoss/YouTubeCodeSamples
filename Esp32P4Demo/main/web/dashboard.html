@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#000000">
+<title>TrailCurrent — ESP32-P4</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<header class="app-header">
+  <svg class="logo" viewBox="0 0 240 48" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="TrailCurrent">
+    <defs>
+      <linearGradient id="trailGradient" x1="2.5" y1="17.4" x2="35.5" y2="17.4" gradientUnits="userSpaceOnUse">
+        <stop offset="0%" stop-color="#52a441"/>
+        <stop offset="100%" stop-color="#74fe00"/>
+      </linearGradient>
+    </defs>
+    <g transform="translate(4,8)">
+      <path d="M 0,28 12,8 18,16 28,4 38,28 Z" fill="#52a441" opacity="0.3"/>
+      <path d="m 4,26 q 6,-4 10,-2 6,3 10,-2 4,-5 10,-2" stroke="url(#trailGradient)"
+            stroke-width="3" stroke-linecap="round" fill="none"/>
+      <path d="m 30,10 3,6 h -4 l 3,8" stroke="#74fe00" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    </g>
+    <text x="52" y="33" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif"
+          font-size="24" font-weight="700" fill="#52a441">Trail<tspan fill="#2d5a25">Current</tspan></text>
+  </svg>
+  <span class="product" id="conn-pill"></span>
+</header>
+
+<main>
+  <div id="banner"></div>
+
+  <!-- ================= Home ================= -->
+  <section class="page" id="page-home">
+    <h1 class="page-title">Home</h1>
+    <p class="empty">Nothing here yet.</p>
+  </section>
+
+  <!-- ================= Audio ================= -->
+  <section class="page" id="page-audio">
+    <h1 class="page-title">Audio</h1>
+    <p class="page-sub">Record from the onboard microphone to the microSD card.</p>
+
+    <div class="card">
+      <h2 class="card-title">
+        <span>Microphone</span>
+        <span id="mic-pill"></span>
+      </h2>
+      <p class="page-sub" style="margin-bottom:16px">
+        Press <strong>Record</strong> to start; the same button stops it.
+      </p>
+      <div class="rec-row">
+        <button class="btn btn-primary btn-block" id="record" type="button">
+          <span class="rec-dot"></span> Record
+        </button>
+        <span class="rec-timer" id="rec-timer" hidden>0:00</span>
+      </div>
+      <div id="rec-result"></div>
+    </div>
+  </section>
+
+  <!-- ================= Camera ================= -->
+  <section class="page" id="page-cam">
+    <h1 class="page-title">Camera</h1>
+    <p class="page-sub">Live view from the MIPI-CSI camera — hardware H.264, no AI.</p>
+
+    <div class="card">
+      <h2 class="card-title">
+        <span>Webcam</span>
+        <span id="cam-pill"></span>
+      </h2>
+      <div class="rec-row" style="margin-bottom:14px">
+        <button class="btn btn-primary btn-block" id="cam-toggle" type="button">Start camera</button>
+      </div>
+      <div class="cam-view" id="cam-view" hidden>
+        <video id="cam-video" muted autoplay playsinline></video>
+      </div>
+      <div class="meter-legend" id="cam-stats" style="margin-top:10px"></div>
+      <div id="cam-note"></div>
+    </div>
+  </section>
+
+  <!-- ================= AI ================= -->
+  <section class="page" id="page-ai">
+    <h1 class="page-title">AI</h1>
+    <p class="page-sub">Live object detection from the MIPI-CSI camera.</p>
+
+    <div class="card">
+      <h2 class="card-title">
+        <span>Detection</span>
+        <span id="ai-pill"></span>
+      </h2>
+      <div class="rec-row" style="margin-bottom:14px">
+        <button class="btn btn-primary btn-block" id="ai-toggle" type="button">Start camera</button>
+      </div>
+      <div class="ai-view" id="ai-view" hidden>
+        <img id="ai-img" alt="camera stream">
+        <canvas id="ai-overlay"></canvas>
+      </div>
+      <div class="meter-legend" id="ai-stats" style="margin-top:10px"></div>
+      <ul class="ai-list" id="ai-list"></ul>
+    </div>
+  </section>
+
+  <!-- ================= Files ================= -->
+  <section class="page" id="page-files">
+    <h1 class="page-title">Files</h1>
+    <p class="page-sub">Browse the microSD card — play, download or delete.</p>
+
+    <div class="card">
+      <h2 class="card-title">
+        <span>microSD contents</span>
+        <button class="btn btn-ghost btn-sm" id="refresh-files" type="button">Refresh</button>
+      </h2>
+      <div class="crumb" id="crumb"></div>
+      <div id="files-body">
+        <div class="empty center-row"><span class="spinner"></span> Loading…</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= Settings ================= -->
+  <section class="page" id="page-settings">
+    <h1 class="page-title">Settings</h1>
+
+    <div class="card">
+      <h2 class="card-title">Wi-Fi</h2>
+      <dl id="net-body"></dl>
+      <div class="btn-row">
+        <button class="btn btn-danger btn-block" id="forget" type="button">
+          Forget network &amp; re-run setup
+        </button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="card-title">
+        <span>microSD card</span>
+        <span id="sd-pill"></span>
+      </h2>
+      <dl id="sd-body"></dl>
+      <div id="sd-meter"></div>
+    </div>
+
+    <div class="card">
+      <h2 class="card-title">About</h2>
+      <dl id="board-body">
+        <div class="empty center-row"><span class="spinner"></span> Loading…</div>
+      </dl>
+    </div>
+  </section>
+
+  <footer>TrailCurrent · Waveshare ESP32-P4-WIFI6</footer>
+</main>
+
+<nav class="bottom-nav" aria-label="Main">
+  <button class="nav-item" data-page="home" type="button">
+    <svg viewBox="0 0 24 24"><path d="M12 3 2 12h3v8h5v-6h4v6h5v-8h3z"/></svg>
+    <span>Home</span>
+  </button>
+  <button class="nav-item" data-page="audio" type="button">
+    <svg viewBox="0 0 24 24"><path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 1 0-6 0v5a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11z"/></svg>
+    <span>Audio</span>
+  </button>
+  <button class="nav-item" data-page="cam" type="button">
+    <svg viewBox="0 0 24 24"><path d="M9.4 4 7.6 6H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-3.6l-1.8-2zM12 8.5a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9zm0 2a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z"/></svg>
+    <span>Camera</span>
+  </button>
+  <button class="nav-item" data-page="ai" type="button">
+    <svg viewBox="0 0 24 24"><path d="M12 2 3 7v10l9 5 9-5V7zm0 2.3 6.5 3.6L12 11.5 5.5 7.9zM5 9.7l6 3.3v6.6l-6-3.3zm8 9.9v-6.6l6-3.3v6.6z"/></svg>
+    <span>AI</span>
+  </button>
+  <button class="nav-item" data-page="files" type="button">
+    <svg viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h4l2 2h6a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/></svg>
+    <span>Files</span>
+  </button>
+  <button class="nav-item" data-page="settings" type="button">
+    <svg viewBox="0 0 24 24"><path d="M19.4 12.9a7.6 7.6 0 0 0 .1-.9 7.6 7.6 0 0 0-.1-.9l2-1.6a.5.5 0 0 0 .1-.6l-1.9-3.3a.5.5 0 0 0-.6-.2l-2.4 1a7.3 7.3 0 0 0-1.6-.9l-.4-2.6a.5.5 0 0 0-.5-.4h-3.8a.5.5 0 0 0-.5.4l-.4 2.6a7.3 7.3 0 0 0-1.6.9l-2.4-1a.5.5 0 0 0-.6.2L2.5 8.9a.5.5 0 0 0 .1.6l2 1.6a7.6 7.6 0 0 0 0 1.8l-2 1.6a.5.5 0 0 0-.1.6l1.9 3.3c.1.2.4.3.6.2l2.4-1c.5.4 1 .7 1.6.9l.4 2.6c0 .2.2.4.5.4h3.8c.2 0 .4-.2.5-.4l.4-2.6a7.3 7.3 0 0 0 1.6-.9l2.4 1c.2.1.5 0 .6-.2l1.9-3.3a.5.5 0 0 0-.1-.6zM12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7z"/></svg>
+    <span>Settings</span>
+  </button>
+</nav>
+
+<script src="/app.js"></script>
+</body>
+</html>

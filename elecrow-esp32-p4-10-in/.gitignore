@@ -1,0 +1,31 @@
+# AI agent configuration (local only — never commit)
+.claude
+.claude/
+.claude.md
+CLAUDE.md
+CLAUDE.MD
+.cursorrules
+.cursor/
+.github/copilot*
+.aider*
+.continue/
+.codeium/
+.tabnine*
+.sourcery.yaml
+
+# ESP-IDF build output
+build/
+sdkconfig
+sdkconfig.old
+managed_components/
+dependencies.lock
+
+# EEZ Studio backups + tmp/ working state
+GUI/**/*.eez-project.bak*
+GUI/**/*.eez-project-ui-state
+tmp/
+GUI/tmp/
+**/tmp/
+
+# CrowPanel vendor source — third-party reference, don't commit into this repo
+CrowPanel-Advanced-*/

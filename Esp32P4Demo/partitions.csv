@@ -1,0 +1,10 @@
+# Partition table for the Waveshare ESP32-P4-WIFI6 — 32 MB NOR flash.
+#
+# Bootloader lives at 0x2000, this table at 0x8000. Everything below fits well
+# inside 32 MB, leaving ~8 MB unallocated for OTA or future use.
+#
+# Name,     Type, SubType,  Offset,   Size,  Flags
+nvs,        data, nvs,      0x9000,   0x6000,
+phy_init,   data, phy,      0xf000,   0x1000,
+factory,    app,  factory,  0x10000,  8M,
+storage,    data, fat,      ,         16M,

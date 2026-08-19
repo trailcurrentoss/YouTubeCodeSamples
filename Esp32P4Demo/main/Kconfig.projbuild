@@ -1,0 +1,283 @@
+menu "ESP32-P4-WIFI6 Demo Configuration"
+
+    menu "microSD card"
+
+        choice DEMO_SD_BUS_WIDTH
+            prompt "SD bus width"
+            default DEMO_SD_BUS_WIDTH_4
+            help
+                The Waveshare ESP32-P4-WIFI6 routes all four data lines to the
+                TF slot, so 4-bit is the correct choice. 1-bit is useful only
+                when debugging a suspected data-line fault.
+
+            config DEMO_SD_BUS_WIDTH_4
+                bool "4-bit"
+            config DEMO_SD_BUS_WIDTH_1
+                bool "1-bit"
+        endchoice
+
+        choice DEMO_SD_SPEED
+            prompt "SD bus speed"
+            default DEMO_SD_SPEED_HS
+            help
+                Default Speed  = 20 MHz  (most conservative)
+                High Speed     = 40 MHz  (safe on this board)
+                UHS-I SDR50    = 100 MHz (needs a UHS-I card; 1.8V switching
+                                          via the on-chip LDO)
+                UHS-I DDR50    = 50 MHz DDR
+
+                Start at High Speed. If the card enumerates but the throughput
+                test reports CRC errors, drop to Default Speed.
+
+            config DEMO_SD_SPEED_DS
+                bool "Default Speed (20 MHz)"
+            config DEMO_SD_SPEED_HS
+                bool "High Speed (40 MHz)"
+            config DEMO_SD_SPEED_UHS_SDR50
+                bool "UHS-I SDR50 (100 MHz)"
+            config DEMO_SD_SPEED_UHS_DDR50
+                bool "UHS-I DDR50 (50 MHz)"
+        endchoice
+
+        config DEMO_SD_FORMAT_ON_BOOT
+            bool "Wipe and reformat the card on every boot (DESTRUCTIVE)"
+            default n
+            help
+                Erases the card and lays down a fresh FAT filesystem before the
+                tests run, so every run starts from an identical state. This
+                destroys all data on the card, and costs about 38 s on a 32 GB
+                card, so it is off by default.
+
+                Turning this OFF does not prevent a completely blank card from
+                being formatted: a card with no filesystem is formatted at mount
+                time regardless, because otherwise it cannot be used at all.
+                That case destroys nothing, since there is nothing on the card
+                to destroy. This option controls only the destructive wipe of a
+                card that already has a filesystem.
+
+        config DEMO_SD_FORMAT_ALLOC_UNIT_KB
+            int "Format allocation unit size (KB)"
+            range 1 128
+            default 32
+            help
+                Cluster size for the new filesystem. Larger clusters give better
+                sequential throughput at the cost of slack space on small files.
+                32 KB is a good default for cards of 8 GB and up.
+
+                This is deliberately NOT dependent on the format-on-boot option:
+                it is still used when a completely blank card has to be
+                formatted at mount time in order to be usable at all.
+
+        config DEMO_SD_BENCH_MB
+            int "Throughput benchmark size (MB)"
+            range 0 512
+            default 8
+            help
+                Amount of data written and read back to measure sustained
+                sequential throughput. Set to 0 to skip the benchmark.
+
+        config DEMO_SD_BENCH_CHUNK_KB
+            int "Throughput benchmark chunk size (KB)"
+            range 4 256
+            default 64
+            help
+                Size of each fwrite()/fread() call in the benchmark. This buffer
+                is allocated from PSRAM.
+
+        config DEMO_SD_RUN_TESTS
+            bool "Run the microSD self-test at boot"
+            default n
+            help
+                Runs the five-part test suite before the web UI starts. The
+                tests are non-destructive — each cleans up its own temporary
+                files — but they add roughly 25 s to boot, so this is off by
+                default now that the board serves a web interface.
+
+                Turn it on when bringing up a new board or qualifying a card.
+
+        config DEMO_SD_STRESS_FILE_COUNT
+            int "Number of files in the many-small-files test"
+            range 0 512
+            default 64
+            help
+                Creates this many small files, verifies each, then deletes them.
+                Exercises FAT directory handling. Set to 0 to skip.
+
+    endmenu
+
+    menu "Microphone"
+
+        config DEMO_AUDIO_SAMPLE_RATE
+            int "Recording sample rate (Hz)"
+            default 16000
+            help
+                16 kHz is plenty for a microphone test and keeps files small.
+                The ES8311 also supports 8000, 32000, 44100 and 48000.
+
+        config DEMO_AUDIO_MIC_GAIN
+            int "Microphone gain step (0-8)"
+            range 0 8
+            default 5
+            help
+                ES8311 analog gain, in 6 dB steps: 0 = 0 dB, 5 = 30 dB,
+                8 = 42 dB. The onboard SMD microphone is quiet, so a middling
+                value gives a usable level. Lower it if recordings clip.
+
+        config DEMO_AUDIO_MAX_SECONDS
+            int "Automatic stop after (seconds, 0 = no limit)"
+            range 0 36000
+            default 0
+            help
+                0 (the default) records until the user presses Stop, the card
+                fills, or the WAV format's 32-bit size limit is reached (about
+                30 hours at 16 kHz mono).
+
+                Set a value to make a forgotten recording stop itself. Audio
+                streams to the card through a 16 MB PSRAM ring buffer while
+                recording, so this no longer sets any buffer size — it is
+                purely a time limit. Storage cost is 32 KB per second.
+
+        config DEMO_AUDIO_SPEAKER_VOLUME
+            int "Speaker playback volume (0-100)"
+            range 0 100
+            default 80
+            help
+                ES8311 DAC volume for local playback through the speaker header
+                (MX1.25 2P). The amplifier is enabled only while a file is
+                playing, so it cannot feed back into the microphone during a
+                recording.
+
+        config DEMO_AUDIO_SILENCE_THRESHOLD
+            int "Silence threshold (peak sample value)"
+            range 1 4000
+            default 120
+            help
+                A recording whose peak never exceeds this is reported as
+                silent. A dead or misconfigured microphone produces a flat
+                near-zero stream that is otherwise indistinguishable from a
+                good recording of a quiet room, so the UI needs to be able to
+                tell the difference.
+
+    endmenu
+
+    menu "Push-to-talk voice assistant"
+
+        config DEMO_PTT_MAX_SECONDS
+            int "Maximum length of one held press (seconds)"
+            range 1 120
+            default 30
+            help
+                A held button captures into PSRAM rather than to the card, so
+                this bounds the buffer: 32 KB per second, allocated once and
+                kept. It also means a button stuck down cannot exhaust memory —
+                capture stops here and the query is sent anyway.
+
+        config DEMO_AUDIO_ASSISTANT_VOLUME
+            int "Spoken reply volume (0-100)"
+            range 0 100
+            default 70
+            help
+                Separate from the file-playback volume, because the material is
+                different. Speech synthesis normalises its output to full scale
+                (measured: peak exactly 32767, 0 dBFS), while a microphone
+                recording of a room peaks far lower.
+
+                The ES8311 maps this to its DAC volume register in 0.5 dB
+                steps, and 75 is unity gain — above that the codec applies
+                POSITIVE gain, so an already-full-scale reply clips before it
+                reaches the amplifier. 80 gives +6.5 dB and audibly distorts.
+
+                70 leaves about 6 dB of headroom. Raise it towards 75 for more
+                level, and only past 75 if the server sends quiet audio.
+
+        config DEMO_PEREGRINE_URL
+            string "Peregrine base URL"
+            default "http://peregrine.local:8081"
+            help
+                Where the captured audio is POSTed, as ${URL}/api/voice. No
+                trailing slash.
+
+                This is only the fallback. The value normally comes from
+                PEREGRINE_URL in /sdcard/environment.conf, so one firmware
+                image can serve boards pointed at different servers.
+
+        config DEMO_PEREGRINE_TOKEN
+            string "Peregrine bearer token"
+            default ""
+            help
+                Sent as "Authorization: Bearer <token>". Empty by default, and
+                the usual place to set it is PEREGRINE_VOICE_TOKEN in
+                /sdcard/environment.conf — a token baked into firmware ends up
+                in every image and cannot be rotated per board.
+
+                With no token from either source the button is inert and says
+                so on the console.
+
+        config DEMO_PEREGRINE_TIMEOUT_MS
+            int "Request timeout (ms)"
+            range 1000 300000
+            default 60000
+            help
+                Covers the whole exchange: upload, speech recognition, the
+                language model, and speech synthesis streaming back. The reply
+                starts playing well before this elapses; the timeout only kills
+                a request that has stalled.
+
+    endmenu
+
+    menu "Wi-Fi and web UI"
+
+        config DEMO_WIFI_AP_SSID_PREFIX
+            string "Setup network SSID prefix"
+            default "TrailCurrent-Setup"
+            help
+                Shown when the board has no saved credentials. The last two
+                bytes of the radio MAC are appended, so two boards on the same
+                bench do not advertise the same name.
+
+        config DEMO_WIFI_AP_PASSWORD
+            string "Setup network password (empty = open network)"
+            default ""
+            help
+                Leave empty for an open setup network — nothing to type or
+                document, and the network only exists until provisioning
+                finishes.
+
+                Set 8 characters or more to secure it with WPA2. Note that a
+                shared, documented password buys little: anyone who knows the
+                PSK can capture the handshake and decrypt the session, so it
+                deters casual sniffing rather than a targeted attacker. A
+                per-device secret would be needed for that.
+
+                Fewer than 8 characters cannot satisfy WPA2, so the network
+                falls back to open and the mismatch is logged as a warning.
+
+        config DEMO_WIFI_AP_CHANNEL
+            int "Setup network channel"
+            range 1 13
+            default 1
+
+        config DEMO_WIFI_SCAN_MAX_AP
+            int "Maximum networks returned by a scan"
+            range 4 64
+            default 24
+
+        config DEMO_WIFI_CONNECT_TIMEOUT_MS
+            int "Connection verification timeout (ms)"
+            range 5000 60000
+            default 15000
+            help
+                How long to wait when testing a candidate network before
+                reporting failure back to the setup UI.
+
+        config DEMO_WEB_CAPTIVE_PORTAL
+            bool "Answer all DNS queries during setup (captive portal)"
+            default y
+            help
+                Points every hostname at the board while in setup mode, so
+                phones pop the setup page up automatically instead of the user
+                having to type an IP address.
+
+    endmenu
+
+endmenu

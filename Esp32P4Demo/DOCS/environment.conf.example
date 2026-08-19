@@ -1,0 +1,23 @@
+# environment.conf — copy to the root of the microSD card as
+#   /sdcard/environment.conf
+#
+# Settings that differ from board to board live here rather than in the
+# firmware image, so one build serves every unit and the token can be
+# rotated by editing this file.
+#
+# Format: KEY=VALUE, one per line. '#' starts a comment. Whitespace around
+# the key and value is ignored. Values may be quoted.
+
+# Base URL of the Peregrine voice assistant. No trailing slash — the board
+# POSTs the captured audio to ${PEREGRINE_URL}/api/voice.
+PEREGRINE_URL=http://peregrine.local:8081
+
+# Bearer token, matching PEREGRINE_VOICE_TOKEN on the Peregrine box. Generate
+# and install it as described in TrailCurrentPeregrine/docs/voice-terminal.md:
+#
+#     openssl rand -hex 32 > ~/.peregrine-voice-token
+#
+# Without this key (or with it left empty) the push-to-talk button stays
+# inert and says so on the console. A value that does not match the server
+# is reported as "HTTP 401 — the bearer token was rejected".
+PEREGRINE_VOICE_TOKEN=
