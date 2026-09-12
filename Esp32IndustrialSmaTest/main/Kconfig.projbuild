@@ -1,0 +1,76 @@
+menu "Antenna A/B Test Configuration"
+
+    config AB_WIFI_SSID
+        string "Reference AP SSID"
+        default "myssid"
+        help
+            SSID of the access point used as the reference signal source.
+            Both antenna runs must target the same AP, on the same channel,
+            from the same physical position, or the comparison is meaningless.
+
+    config AB_WIFI_PASSWORD
+        string "Reference AP password"
+        default "mypassword"
+        help
+            WPA2 passphrase for the reference AP. Leave empty for an open AP.
+
+    config AB_WIFI_CONNECT_TIMEOUT_MS
+        int "Association timeout (ms)"
+        range 2000 60000
+        default 15000
+        help
+            How long to wait for association + DHCP before declaring the
+            connect attempt failed. A failed connect is itself a result worth
+            recording -- the run is stored with connect_ok = false.
+
+    config AB_RSSI_SAMPLES
+        int "RSSI samples per run"
+        range 10 2000
+        default 300
+        help
+            Number of RSSI readings taken per measurement run. At the default
+            200 ms interval, 300 samples is a 60 second run. More samples
+            narrow the confidence interval on the mean; fewer get you through
+            a demo faster.
+
+    config AB_RSSI_INTERVAL_MS
+        int "RSSI sample interval (ms)"
+        range 50 5000
+        default 200
+        help
+            Delay between RSSI readings. The ESP32-S3 refreshes the cached
+            RSSI on each received beacon, so sampling faster than the AP's
+            beacon interval (typically 100 ms) just duplicates readings.
+
+    config AB_PING_COUNT
+        int "ICMP echo requests per run"
+        range 0 500
+        default 50
+        help
+            RSSI is a receive-side metric only. The ping loss/RTT figures give
+            you a round-trip view, which is where a bad transmit path shows up.
+            Set to 0 to skip the ping stage.
+
+    config AB_PING_INTERVAL_MS
+        int "ICMP echo interval (ms)"
+        range 50 5000
+        default 200
+
+    config AB_PING_TARGET
+        string "ICMP echo target (blank = default gateway)"
+        default ""
+        help
+            Hostname or dotted-quad to ping. Leave blank to ping the DHCP
+            default gateway, which keeps the test on the local RF link instead
+            of measuring your internet uplink.
+
+    config AB_SCAN_MAX_AP
+        int "Maximum APs recorded per scan"
+        range 8 128
+        default 48
+        help
+            Upper bound on the AP census. The number of distinct BSSIDs a scan
+            can hear is a useful antenna-sensitivity proxy that does not depend
+            on any single access point.
+
+endmenu

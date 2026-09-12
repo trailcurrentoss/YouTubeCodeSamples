@@ -1,0 +1,41 @@
+{
+  "_comment": [
+    "PocketTerm35 button map, captured on hardware over two independent passes.",
+    "",
+    "This file is REFERENCE DATA, not runtime configuration. LinuxTouch does not",
+    "read evdev at all: global navigation is bound at the compositor level in",
+    "wm/sway/config, using the X keysyms in the 'keysym' field below. The file is",
+    "here because the mapping is the single most important fact about this",
+    "hardware, and because tools/capture_keymap.py regenerates it after an RP2040",
+    "firmware change.",
+    "",
+    "The device presents a USB HID keyboard + mouse + consumer-control. There is",
+    "NO gamepad collection, so nothing here can arrive as a joystick event. The",
+    "D-pad is the real arrow cluster and L/R are the letter keys L and R -- there",
+    "are no physical shoulder buttons.",
+    "",
+    "'character': true means the key types a letter, and therefore MUST NOT be",
+    "bound globally. Only start and select are safe, which is the entire basis of",
+    "the control scheme. See docs/controls.md.",
+    "",
+    "Do not hardcode the event device number. The keyboard was event0 on one card",
+    "and event1 on another; allocation order is not identity."
+  ],
+  "captured": "2026-09-01",
+  "device_name": "My Company My Custom Pico Keyboard",
+  "usb_id": "1209:0001",
+  "buttons": {
+    "dpad_up":    { "keycode": 103, "key": "KEY_UP",    "keysym": "Up",    "hid_usage": "0x70052", "character": false },
+    "dpad_down":  { "keycode": 108, "key": "KEY_DOWN",  "keysym": "Down",  "hid_usage": "0x70051", "character": false },
+    "dpad_left":  { "keycode": 105, "key": "KEY_LEFT",  "keysym": "Left",  "hid_usage": "0x70050", "character": false },
+    "dpad_right": { "keycode": 106, "key": "KEY_RIGHT", "keysym": "Right", "hid_usage": "0x7004f", "character": false },
+    "a":          { "keycode":  30, "key": "KEY_A",     "keysym": "a",     "hid_usage": "0x70004", "character": true },
+    "b":          { "keycode":  48, "key": "KEY_B",     "keysym": "b",     "hid_usage": "0x70005", "character": true },
+    "x":          { "keycode":  45, "key": "KEY_X",     "keysym": "x",     "hid_usage": "0x7001b", "character": true },
+    "y":          { "keycode":  21, "key": "KEY_Y",     "keysym": "y",     "hid_usage": "0x7001c", "character": true },
+    "l":          { "keycode":  38, "key": "KEY_L",     "keysym": "l",     "hid_usage": "0x7000f", "character": true },
+    "r":          { "keycode":  19, "key": "KEY_R",     "keysym": "r",     "hid_usage": "0x70015", "character": true },
+    "start":      { "keycode": 119, "key": "KEY_PAUSE", "keysym": "Pause", "hid_usage": "0x70048", "character": false },
+    "select":     { "keycode":  99, "key": "KEY_SYSRQ", "keysym": "Print", "hid_usage": "0x70046", "character": false }
+  }
+}

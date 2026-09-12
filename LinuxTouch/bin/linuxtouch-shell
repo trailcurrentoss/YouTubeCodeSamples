@@ -1,0 +1,157 @@
+#!/bin/sh
+# linuxtouch-shell — launch the home screen.
+#
+# The shell is an ordinary Chromium application window pointed at the bundle
+# that touchd serves on localhost. It holds no privilege and does nothing a web
+# page cannot do; everything else goes through touchd's WebSocket API.
+#
+# Started by sway's `exec_always`, so sway owns its lifetime and restarts it if
+# it dies.
+set -u
+
+PORT="${LINUXTOUCH_PORT:-8720}"
+URL="http://127.0.0.1:${PORT}/"
+PROFILE="${LINUXTOUCH_PROFILE:-${XDG_DATA_HOME:-$HOME/.local/share}/linuxtouch/shell-profile}"
+
+# Wait for touchd before starting Chromium. Without this the shell races the
+# daemon at boot and loses roughly every time, and what the user sees is not a
+# blank screen they would report as a bug — it is Chromium's "site cannot be
+# reached" page, which looks like a broken network rather than a startup order
+# problem. 30 x 0.5s = 15s, which is far longer than touchd has ever needed.
+i=0
+while [ "$i" -lt 30 ]; do
+    if curl --silent --max-time 1 --fail "http://127.0.0.1:${PORT}/healthz" >/dev/null 2>&1; then
+        break
+    fi
+    i=$((i + 1))
+    sleep 0.5
+done
+
+mkdir -p "$PROFILE"
+
+PIDFILE="$(dirname "$PROFILE")/shell-supervisor.pid"
+
+# Stop a previous SUPERVISOR before touching its Chromium.
+#
+# This ordering is load-bearing. Killing only the Chromium leaves the old
+# wrapper's restart loop alive; it sees its child die, relaunches, and that
+# relaunch hands off to the new instance and exits immediately — so the loop
+# fires again two seconds later, forever, opening a new window each time.
+# Observed on hardware 2026-09-05: thirty-four shell windows, each 18 pixels
+# wide, after two deploys.
+if [ -f "$PIDFILE" ]; then
+    old_pid="$(cat "$PIDFILE" 2>/dev/null || true)"
+    if [ -n "${old_pid:-}" ] && [ "$old_pid" != "$$" ] && kill -0 "$old_pid" 2>/dev/null; then
+        kill "$old_pid" 2>/dev/null || true
+        sleep 1
+    fi
+fi
+echo "$$" > "$PIDFILE"
+
+# Kill any shell already running against this profile.
+#
+# sway runs this from `exec_always`, which fires again on every `swaymsg
+# reload` — and `make deploy` reloads sway. Without this, each deploy left an
+# extra Chromium window behind: two shells tiled side by side, neither
+# fullscreen, and the `linuxtouch_shell` mark on whichever mapped last. Verified
+# on hardware 2026-09-05.
+#
+# Matching is on the profile path AND the process name. A bare `pkill -f
+# chromium` would also match this script's own command line and any SSH command
+# that happens to mention it — a trap TrailCurrentTracer documented after
+# hitting it.
+for pid in $(pgrep -f -- "--user-data-dir=$PROFILE" 2>/dev/null); do
+    [ "$pid" = "$$" ] && continue
+    case "$(ps -p "$pid" -o comm= 2>/dev/null)" in
+        chromium*) kill "$pid" 2>/dev/null ;;
+    esac
+done
+sleep 1
+
+# Flag notes, since several of these are load-bearing and none are obvious:
+#
+#   --app=            An application window: no tabs, no omnibox, no bookmarks
+#                     bar. Not --kiosk, because kiosk mode swallows the window
+#                     management sway is supposed to be doing.
+#   --class=          Sets the app_id on X11. NOTE: Chromium IGNORES this on
+#                     Wayland — verified on hardware, where the shell's app_id
+#                     came out as "chrome-127.0.0.1__-Default" regardless. It is
+#                     kept for the XWayland fallback case only; the shell is
+#                     actually identified by the sway mark set in wm/sway/config.
+#
+#   NO --start-fullscreen. sway forces fullscreen with a for_window rule, and
+#   when Chromium also asked for it the two raced and the window ended up NOT
+#   fullscreen — it tiled to half the screen as soon as a second app opened.
+#   Observed on hardware 2026-09-04. The compositor owns window management;
+#   the shell must not have an opinion about it.
+#   --force-device-scale-factor=1
+#                     The panel is natively 640x480. Any other value means the
+#                     CSS pixel grid stops matching the physical one, and every
+#                     hit target in the shell is designed against that grid.
+#   --disable-pinch   Pinch-zoom on a 640x480 shell is never intentional; it is
+#                     a two-finger scroll that went slightly wrong, and it
+#                     leaves the UI at a zoom level with no way back.
+#   --overscroll-history-navigation=0
+#                     Otherwise a horizontal swipe between grid pages is
+#                     interpreted as browser Back and the shell navigates away
+#                     from itself.
+#   --enable-features=OverlayScrollbar
+#                     Scrollbars that do not permanently occupy 15px of a
+#                     640px-wide screen.
+#   --password-store=basic --use-mock-keychain
+#                     REQUIRED, not cosmetic. Chromium's default password store
+#                     is gnome-libsecret, and with no unlocked keyring it raises
+#                     a MODAL "Choose password for new keyring" dialog that
+#                     covers the shell. The panel then shows a dialog while
+#                     every health check still reports the shell running. This
+#                     cost TrailCurrentTracer an afternoon; do not remove it.
+
+# Supervision loop. sway's `exec` does NOT restart a child that exits — that is
+# what labwc's `lwrespawn` wrapper is for, and sway has no equivalent. Without
+# this loop, a Chromium crash leaves the user staring at the wallpaper with no
+# way back except SSH.
+#
+# The loop exits when sway does, so it cannot outlive its session and fight the
+# next one for the screen.
+while [ -S "${SWAYSOCK:-/nonexistent}" ] || [ -z "${SWAYSOCK:-}" ]; do
+started_at="$(date +%s)"
+chromium \
+    --ozone-platform=wayland \
+    --class=linuxtouch-shell \
+    --user-data-dir="$PROFILE" \
+    --app="$URL" \
+    --window-size=640,480 \
+    --window-position=0,0 \
+    --force-device-scale-factor=1 \
+    --disable-pinch \
+    --overscroll-history-navigation=0 \
+    --enable-features=OverlayScrollbar \
+    --password-store=basic \
+    --use-mock-keychain \
+    --noerrdialogs \
+    --no-first-run \
+    --no-default-browser-check \
+    --disable-session-crashed-bubble \
+    --disable-component-update \
+    --check-for-update-interval=31536000 \
+    "$@"
+
+    # Reached only when Chromium exits.
+    #
+    # An immediate exit almost always means this invocation handed off to an
+    # existing Chromium owning the same profile and quit — relaunching in that
+    # case is what turns a supervisor into a window-spawning loop. Stand down
+    # instead: whoever owns the profile is the live shell.
+    if [ $(( $(date +%s) - started_at )) -lt 5 ]; then
+        echo "linuxtouch-shell: exited immediately; another instance owns" \
+             "$PROFILE — not restarting" >&2
+        rm -f "$PIDFILE"
+        exit 0
+    fi
+
+    # A real crash after running for a while. Pause so a persistently broken
+    # shell (bad URL, corrupt profile) cannot spin a core.
+    sleep 2
+done
+
+rm -f "$PIDFILE"

@@ -1,0 +1,32 @@
+# TrailShell runtime dependencies (Debian 13 / Raspberry Pi OS trixie, arm64).
+# One package per line; '#' comments and blank lines ignored.
+# This file is the single source of truth for install-deps.sh AND for the
+# Raspberry Pi image build, so the two can never drift apart.
+
+# --- Python + GTK3 bindings ---
+python3-gi
+python3-gi-cairo          # the cairo.Context <-> GI bridge; without it every
+                          # DrawingArea in the shell raises at draw time
+gir1.2-gtk-3.0
+gir1.2-gdkpixbuf-2.0
+python3-xlib              # EWMH: struts, window list, hotkey grabs
+
+# --- window manager ---
+openbox                   # focus/stacking/EWMH; see session/openbox-rc.xml
+
+# --- typeface ---
+fonts-inter               # the TrailCurrent brand face
+fonts-inter-variable
+
+# --- X utilities the shell shells out to ---
+x11-xserver-utils         # xrandr (dim + mode), xset, xrdb
+x11-utils                 # xprop, used by the session script to await the WM
+unclutter-xfixes          # hides the pointer the touchscreen drags around
+
+# --- system state providers ---
+# network-manager provides nmcli; wireplumber provides wpctl; both ship in the
+# Raspberry Pi OS desktop image already but are listed for a minimal build.
+network-manager
+wireplumber
+rfkill
+upower

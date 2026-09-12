@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=TrailShell
+Comment=Touch-first desktop for the PocketTerm35
+Exec=/usr/bin/trailshell-session
+TryExec=/usr/bin/trailshell-session
+Type=Application
+DesktopNames=TrailShell
+Keywords=trailcurrent;pocketterm;touch;

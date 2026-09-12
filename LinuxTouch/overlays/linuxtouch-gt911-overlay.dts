@@ -1,0 +1,79 @@
+/*
+ * linuxtouch-gt911 — Goodix GT911 capacitive touch for the Waveshare PocketTerm35.
+ *
+ * Derived from Waveshare's waveshare-35dpi-5b.dtbo, from
+ * https://files.waveshare.com/wiki/common/3.5HDMI_E_DTBO.zip
+ * with ONE change: the 0x14 node is removed.
+ *
+ * WHY THIS EXISTS
+ * ---------------
+ * Waveshare ships panels with the GT911 strapped to either 0x14 or 0x5d, so
+ * their overlay declares BOTH and lets the unpopulated one fail. On this unit
+ * only 0x5d is populated, so every boot logs two err-level lines:
+ *
+ *     Goodix-TS 1-0014: error -EBUSY: Failed to get irq GPIO
+ *     Goodix-TS 1-0014: probe with driver Goodix-TS failed with error -16
+ *
+ * Harmless, but a device that wants a quiet boot journal cannot claim one while
+ * emitting those. Dropping the node is the only honest fix.
+ *
+ * This is also why the OTHER vendor overlay must never be used: waveshare-35dpi-4b
+ * declares 0x14 ONLY, so on a 0x5d panel touch does not come up at all. See
+ * https://github.com/darkLabz001/pocketterm35-kali for an independent report of
+ * exactly that failure.
+ *
+ * VERIFIED ON HARDWARE (2026-09-04, Pi 5, kernel 6.12.47+rpt-rpi-2712):
+ *     Goodix-TS 1-005d: ID 911, version: 1060
+ *     input: 1-005d Goodix Capacitive TouchScreen as .../i2c-1/1-005d/input/input7
+ *     B: PROP=2   (INPUT_PROP_DIRECT — a real touchscreen, not a trackpad)
+ *
+ * NOTE: the display is NOT configured here and needs no overlay — the panel is
+ * plain HDMI at native 640x480. Waveshare's "35dpi" name is misleading; this
+ * overlay only ever carried touch. See docs/hardware.md.
+ *
+ * IF TOUCH STOPS WORKING after a panel swap, the replacement may be strapped to
+ * 0x14. Fall back to `dtoverlay=waveshare-35dpi-5b` (the vendor overlay, which
+ * provision.sh leaves installed for exactly this reason) and re-check
+ * `dmesg | grep Goodix` before editing this file.
+ *
+ * Node is named gt911@5d rather than Waveshare's ft6236@5d. The vendor name is
+ * simply wrong — the compatible has always been goodix,gt911. DT binding is by
+ * compatible, never by node name, so the rename is cosmetic and safe.
+ *
+ * Build:   dtc -@ -I dts -O dtb -o linuxtouch-gt911.dtbo linuxtouch-gt911-overlay.dts
+ * Install: /boot/firmware/overlays/linuxtouch-gt911.dtbo
+ * Enable:  dtoverlay=linuxtouch-gt911   (requires dtparam=i2c_arm=on)
+ */
+
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "brcm,bcm2835";
+
+	fragment@0 {
+		target = <&i2c1>;
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "okay";
+
+			gt911: gt911@5d {
+				compatible = "goodix,gt911";
+				reg = <0x5d>;
+
+				/* Values below are byte-for-byte from the vendor
+				 * overlay. They are known-good on this hardware;
+				 * do not "tidy" them without re-verifying. */
+				interrupt-parent = <&gpio>;
+				interrupts = <4 2>;          /* GPIO4, edge falling */
+				irq-gpios = <&gpio 4 2>;
+
+				touchscreen-size-x = <640>;  /* 0x280 */
+				touchscreen-size-y = <480>;  /* 0x1e0 */
+				touchscreen-x-mm = <70>;     /* 0x46  */
+				touchscreen-y-mm = <53>;     /* 0x35  */
+			};
+		};
+	};
+};

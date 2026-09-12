@@ -1,0 +1,164 @@
+# LinuxTouch compositor configuration.
+#
+# Installed to /etc/linuxtouch/sway/config and started by
+# linuxtouch-session.service. This file REPLACES sway's default config
+# wholesale — it deliberately does not `include /etc/sway/config.d/*`, because
+# the stock config binds dozens of letter keys as window-management shortcuts.
+# On this hardware those letters are needed for typing. See docs/controls.md.
+#
+# The design in one line: every window is fullscreen, nothing has a border, and
+# exactly two keys are bound globally.
+
+### Output ############################################################
+#
+# The panel advertises 640x480 as its native and preferred mode, so this pin is
+# not strictly required today. It is here so that a mode-list reordering after
+# a firmware update cannot silently select the 800x600 the panel also
+# advertises, which would leave every hit target in the shell the wrong size on
+# a screen the user cannot easily read to fix it.
+#
+# No refresh rate is specified. The panel's preferred mode came up as
+# 640x480@75Hz on hardware, and pinning @60Hz asks for a mode this display does
+# not necessarily offer — a failed modeset here is a black screen on a device
+# whose only recovery is SSH.
+output HDMI-A-1 mode 640x480 position 0 0 scale 1
+
+# No wallpaper process. The shell fills the screen; anything behind it is never
+# visible and would only cost memory.
+output * bg #12131a solid_color
+
+### Windows ###########################################################
+#
+# One app at a time, filling the panel. At 640x480 a title bar costs ~5% of the
+# screen to display text nobody can act on, and tiling two windows leaves each
+# 320px wide, which no desktop application survives.
+default_border none
+default_floating_border none
+hide_edge_borders --i3 both
+gaps inner 0
+gaps outer 0
+font pango:sans 8
+
+# Force fullscreen for every client, Wayland and XWayland alike. Two rules are
+# needed: app_id matches native Wayland clients, class matches X11 clients
+# coming through XWayland (Thunderbird and older editors are commonly the
+# latter).
+#
+# Verified on hardware 2026-09-04: galculator maps at fullscreen_mode=1 filling
+# the output, so this rule does fire.
+for_window [app_id=".*"] fullscreen enable, inhibit_idle fullscreen
+for_window [class=".*"] fullscreen enable, inhibit_idle fullscreen
+
+# Identify the shell's own window with a mark.
+#
+# This exists because Chromium IGNORES --class on Wayland. Verified on the
+# device: the shell's app_id comes out as "chrome-127.0.0.1__-Default", derived
+# from the URL it was given, not from anything we asked for. Matching that
+# string directly all over the codebase would spread a fragile detail around,
+# so it is pinned here once and everything else refers to the mark. touchd
+# focuses the home screen with [con_mark="linuxtouch_shell"].
+#
+# If the shell's port ever changes, this pattern changes with it.
+for_window [app_id="^chrome-127\.0\.0\.1"] mark --add linuxtouch_shell
+
+# Dialogs and popups still open floating and centred rather than fullscreen —
+# a fullscreen "Are you sure?" with no visible parent is disorienting.
+#
+# NOTE: window_role is matched as a regex, but window_type is an ENUM and must
+# be given one value per rule. Writing [window_type="dialog|menu"] does not
+# match either one — sway reports "Criteria is empty" and then refuses to load
+# the whole config, which on a deployed unit is a black screen at boot. Verified
+# the hard way on hardware, 2026-09-04.
+for_window [window_role="pop-up|bubble|dialog|menu"] floating enable, resize set 560 380
+for_window [window_type="dialog"] floating enable, resize set 560 380
+for_window [window_type="menu"] floating enable
+for_window [window_type="utility"] floating enable, resize set 560 380
+
+# Focus follows the compositor's own decisions only. With touch input,
+# focus-follows-pointer causes focus to jump on every stray finger contact.
+focus_follows_mouse no
+
+# Hide the pointer when it is not moving. There is no mouse on this device; the
+# cursor only appears because the RP2040 also presents a mouse HID collection,
+# and a stationary arrow in the middle of a 640x480 screen looks like a fault.
+seat seat0 hide_cursor 2000
+
+### Input #############################################################
+#
+# The GT911 needs no calibration: it reports 640x480, 1:1 with the panel, and
+# the kernel already flags it INPUT_PROP_DIRECT. This mapping is only insurance
+# against a second output ever being attached (the Pi 5 has two HDMI ports, and
+# a hotplugged monitor would otherwise make libinput's choice of target output
+# ambiguous).
+input type:touch {
+    map_to_output HDMI-A-1
+    events enabled
+}
+
+# No tap-to-click emulation and no natural scroll for the HID mouse collection;
+# it exists only as a side effect of the keyboard firmware and is not a pointing
+# device anyone uses.
+input type:pointer {
+    events enabled
+}
+
+### Global navigation — the only two bound keys ########################
+#
+# Start reports as KEY_PAUSE (keysym Pause) and Select as KEY_SYSRQ (keysym
+# Print). They are the ONLY two controls on this hardware that carry no
+# character; A/B/X/Y/L/R are the literal letter keys. Binding any letter here
+# would make it impossible to type that letter in a mail client or editor.
+#
+# These are compositor bindings, so they fire while a third-party app holds
+# keyboard focus — which is the whole reason the shell does not need to grab
+# input devices. See docs/architecture.md.
+#
+# --no-repeat: holding the key must not queue a burst of home events.
+bindsym --no-repeat Pause exec linuxtouch-nav home
+bindsym --no-repeat Print exec linuxtouch-nav back
+
+# Explicit switcher binding. Pressing Start while already home also opens the
+# switcher (touchd decides that, not sway), so this chord is a convenience for
+# anyone who prefers it — and the documented binding if the "press again"
+# behaviour is ever turned off.
+bindsym --no-repeat Shift+Pause exec linuxtouch-nav switcher
+
+# Emergency exit, for development only. A three-modifier chord cannot be
+# produced accidentally and cannot collide with typing. On a deployed unit the
+# way out is the power button, which raises a shutdown confirmation.
+bindsym Ctrl+Alt+Shift+q exit
+
+### Startup ###########################################################
+#
+# ORDER MATTERS HERE, and getting it wrong produces two failures that look
+# nothing like an environment problem. A systemd user service does NOT inherit
+# the compositor's environment, so without this import touchd starts with
+# neither SWAYSOCK nor WAYLAND_DISPLAY, and:
+#
+#   * every swaymsg call fails, so the app switcher is permanently empty; and
+#   * every application launched from the grid has no compositor to connect to
+#     and dies on startup, so tapping an icon appears to do nothing at all.
+#
+# Both were observed on hardware before this line existed (2026-09-04).
+# ONE exec, chained with `;` in a single shell — NOT three exec_always lines.
+# sway fires exec commands concurrently rather than waiting for each to finish,
+# so as separate lines the `start` raced the import and touchd came up blind (or
+# not at all). Observed on hardware 2026-09-05: the environment was imported
+# correctly and touchd was still inactive.
+#
+# daemon-reload is in the chain because the systemd user manager outlives a
+# session restart, so a unit file that provision.sh has just installed is not
+# yet known to it. Without the reload, the first start after provisioning fails
+# on a unit systemd insists does not exist.
+#
+# touchd is a separate unit rather than a child of sway so that a shell crash,
+# or a `make deploy` restarting the shell, leaves the network and power controls
+# running.
+exec_always sh -c '\
+    systemctl --user import-environment WAYLAND_DISPLAY SWAYSOCK XDG_CURRENT_DESKTOP; \
+    dbus-update-activation-environment --systemd WAYLAND_DISPLAY SWAYSOCK XDG_CURRENT_DESKTOP; \
+    systemctl --user daemon-reload; \
+    systemctl --user restart touchd.service'
+
+# The shell itself. sway owns its lifetime: if it exits, sway restarts it.
+exec_always linuxtouch-shell

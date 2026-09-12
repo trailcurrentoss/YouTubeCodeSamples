@@ -1,0 +1,11 @@
+# Extra packages for developing and validating TrailShell. Not needed at runtime
+# and NOT part of the Raspberry Pi image.
+xvfb                      # isolated 640x480 X server, so the shell can be
+                          # tested without the host LXDE session interfering
+xserver-xephyr            # nested X server for interactive poking
+xdotool                   # synthetic input for the scripted UI tests
+wmctrl
+scrot
+libnotify-bin             # notify-send, to exercise the notification server
+picotool                  # read/write the PocketTerm35 keyboard's RP2040 firmware
+                          # (see docs/keyboard-firmware.md)

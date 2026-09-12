@@ -1,0 +1,55 @@
+[Unit]
+Description=LinuxTouch daemon
+Documentation=https://github.com/trailcurrentoss/LinuxTouch
+# A SYSTEMD USER UNIT, not a system service. That is a deliberate choice with a
+# concrete reason: touchd changes Wi-Fi settings and powers the device off, and
+# both are polkit-gated. polkit grants those to a user with an active local
+# session, which a system unit is not — as a system service, nmcli would fail
+# with "not authorized" and `systemctl poweroff` would silently wait for a
+# password prompt on a device that cannot show one.
+#
+# Running inside the graphical session makes all of that work with no custom
+# polkit rules at all. See bin/linuxtouch-session.
+#
+# It is started by an `exec_always` in wm/sway/config rather than by a
+# WantedBy= on graphical-session.target, and deliberately so: a systemd user
+# unit does NOT inherit the compositor's environment, and sway must run
+# `systemctl --user import-environment` FIRST. Started any earlier, touchd
+# comes up with no SWAYSOCK and no WAYLAND_DISPLAY, which produces two failures
+# that look nothing like an environment problem — a permanently empty app
+# switcher, and grid icons that do nothing when tapped because every launched
+# app dies with no compositor to connect to. Both observed on hardware.
+#
+# It is still a separate unit rather than a child of sway, so that a shell
+# crash (or a `make deploy` restarting the shell) leaves the daemon — and
+# therefore the network and power controls — running.
+After=graphical-session.target
+PartOf=graphical-session.target
+
+# These belong in [Unit], not [Service]. systemd ignores them in [Service] and
+# says so on every load ("Unknown key 'StartLimitIntervalSec' in section
+# [Service], ignoring"), which means the rate limit silently does not exist.
+# Give up after repeated instant failures instead of restarting forever: a
+# config error that kills the daemon at import time would otherwise spin a core
+# on a passively-cooled handheld and fill the journal.
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 -m touchd --shell /usr/share/linuxtouch/shell
+Environment=PYTHONPATH=/usr/share/linuxtouch/touchd
+Environment=PYTHONUNBUFFERED=1
+Environment=LINUXTOUCH_PORT=8720
+
+Restart=always
+RestartSec=2
+
+# Applications launched from the grid are detached into their own process
+# groups (start_new_session=True in modules/apps.py), so KillMode=process here
+# is belt-and-braces: restarting touchd must never close the user's editor.
+KillMode=process
+
+# No [Install] section on purpose. Enabling this unit would start it from
+# graphical-session.target, racing the environment import described above.
+# sway starts it explicitly instead.

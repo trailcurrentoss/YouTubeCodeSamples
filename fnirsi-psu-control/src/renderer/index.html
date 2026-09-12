@@ -1,0 +1,507 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:;"
+    />
+    <title>FNIRSI PSU Control</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <!-- Persistent measurement bar ------------------------------------- -->
+    <header class="readouts">
+      <div class="brand">
+        <span class="dot" id="link-dot"></span>
+        <div>
+          <div class="brand-name">PSU Control</div>
+          <div class="brand-sub" id="device-id">—</div>
+        </div>
+      </div>
+
+      <div class="meters">
+        <div class="meter">
+          <span class="meter-label" data-i18n="outputVoltage">Output Voltage</span>
+          <span class="meter-value" id="m-vout">--.--<small>V</small></span>
+        </div>
+        <div class="meter">
+          <span class="meter-label" data-i18n="outputCurrent">Output Current</span>
+          <span class="meter-value" id="m-iout">-.---<small>A</small></span>
+        </div>
+        <div class="meter">
+          <span class="meter-label" data-i18n="outputPower">Output Power</span>
+          <span class="meter-value" id="m-pout">--.--<small>W</small></span>
+        </div>
+        <div class="meter small">
+          <span class="meter-label" data-i18n="inputVoltage">Input Voltage</span>
+          <span class="meter-value" id="m-vin">--.--<small>V</small></span>
+        </div>
+        <div class="meter small">
+          <span class="meter-label" data-i18n="systemTemperature">Temperature</span>
+          <span class="meter-value" id="m-temp">--<small>°C</small></span>
+        </div>
+      </div>
+
+      <div class="output-block">
+        <div class="badges">
+          <span class="badge" id="badge-mode">CV</span>
+          <span class="badge ok" id="badge-protect" data-i18n="normal">Normal</span>
+        </div>
+        <button class="power" id="btn-output" disabled title="Toggle the output">
+          <span class="power-label">OUTPUT</span>
+          <span class="power-state" id="output-state">OFF</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="shell">
+      <!-- Navigation ------------------------------------------------- -->
+      <nav class="nav">
+        <button class="nav-item active" data-view="connection">
+          <span data-i18n="connection">Connection</span>
+        </button>
+        <button class="nav-item" data-view="basic">
+          <span data-i18n="tabBasic">Basic</span>
+        </button>
+        <button class="nav-item" data-view="advanced">
+          <span data-i18n="tabAdvanced">Advanced</span>
+        </button>
+        <button class="nav-item" data-view="recording">
+          <span data-i18n="recording">Recording</span>
+        </button>
+        <button class="nav-item" data-view="settings">
+          <span data-i18n="settings">Settings</span>
+        </button>
+        <div class="nav-spacer"></div>
+        <div class="nav-status" id="nav-status"></div>
+      </nav>
+
+      <main class="content">
+        <!-- ============ CONNECTION ============ -->
+        <section class="view active" id="view-connection">
+          <div class="grid two">
+            <div class="card">
+              <h2 data-i18n="usb">USB</h2>
+              <div class="field">
+                <label data-i18n="communicationPort">Communication Port</label>
+                <div class="row">
+                  <select id="sel-port"></select>
+                  <button class="ghost" id="btn-refresh" data-i18n="refresh">
+                    Refresh
+                  </button>
+                </div>
+              </div>
+              <div class="field">
+                <label data-i18n="communicationRate">Communication Rate</label>
+                <select id="sel-baud"></select>
+              </div>
+              <div class="field">
+                <label data-i18n="deviceAddress">Device address</label>
+                <div class="row">
+                  <input
+                    type="number"
+                    id="inp-address"
+                    min="1"
+                    max="255"
+                    value="1"
+                    disabled
+                  />
+                  <label class="inline">
+                    <input type="checkbox" id="chk-auto-address" checked />
+                    <span>Auto-detect</span>
+                  </label>
+                </div>
+                <p class="hint" id="address-hint">
+                  Match the address shown on the supply (001–255). Leave
+                  auto-detect on to use whatever it reports.
+                </p>
+              </div>
+              <button class="primary wide" id="btn-connect" data-i18n="online">
+                Connect
+              </button>
+              <p class="hint" id="connect-hint"></p>
+            </div>
+
+            <div class="card">
+              <h2 data-i18n="basicInformation">Basic Information</h2>
+              <dl class="info">
+                <dt data-i18n="productModel">Product Model</dt>
+                <dd id="info-model">—</dd>
+                <dt data-i18n="firmwareVersion">Firmware Version</dt>
+                <dd id="info-firmware">—</dd>
+                <dt data-i18n="inputVoltage">Input Voltage</dt>
+                <dd id="info-vin">—</dd>
+                <dt data-i18n="outputVoltage">Output Voltage</dt>
+                <dd id="info-vout">—</dd>
+                <dt data-i18n="outputCurrent">Output Current</dt>
+                <dd id="info-iout">—</dd>
+                <dt data-i18n="outputPower">Output Power</dt>
+                <dd id="info-pout">—</dd>
+                <dt data-i18n="systemTemperature">System Temperature</dt>
+                <dd id="info-temp">—</dd>
+                <dt data-i18n="outputMode">Output Mode</dt>
+                <dd id="info-mode">—</dd>
+                <dt data-i18n="operatingStatus">Operating Status</dt>
+                <dd id="info-protect">—</dd>
+              </dl>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============ BASIC ============ -->
+        <section class="view" id="view-basic">
+          <div class="grid two">
+            <div class="card">
+              <h2 data-i18n="voltageSetting">Voltage Setting</h2>
+              <div class="setter">
+                <button class="step" data-step="v-">−</button>
+                <input type="number" id="set-v" step="0.01" min="0" value="5.00" />
+                <span class="unit">V</span>
+                <button class="step" data-step="v+">+</button>
+              </div>
+              <div class="bar"><i id="bar-v"></i></div>
+              <p class="hint">
+                <span data-i18n="upperLimit">Upper Limit</span>
+                <strong id="lim-v">24.00 V</strong>
+              </p>
+
+              <h2 class="mt" data-i18n="currentSetting">Current Setting</h2>
+              <div class="setter">
+                <button class="step" data-step="a-">−</button>
+                <input type="number" id="set-a" step="0.001" min="0" value="1.000" />
+                <span class="unit">A</span>
+                <button class="step" data-step="a+">+</button>
+              </div>
+              <div class="bar amber"><i id="bar-a"></i></div>
+              <p class="hint">
+                <span data-i18n="upperLimit">Upper Limit</span>
+                <strong id="lim-a">5.000 A</strong>
+              </p>
+
+              <button class="primary wide mt" id="btn-apply" data-i18n="apply">
+                Apply
+              </button>
+
+              <!-- Output control repeated here: this is where setpoints are
+                   edited, so this is where you want to switch the output. -->
+              <div class="output-row mt">
+                <div>
+                  <div class="stat-label">Output</div>
+                  <div class="stat" id="basic-output-state">OFF</div>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="chk-output" disabled />
+                  <span></span>
+                </label>
+              </div>
+              <p class="hint">
+                Setpoints can be changed at any time. Turning the output on
+                re-sends both values first.
+              </p>
+            </div>
+
+            <div class="card">
+              <h2 data-i18n="expressData">Express data</h2>
+              <div class="groups" id="groups"></div>
+
+              <h2 class="mt" data-i18n="measurement">Measurement</h2>
+              <div class="row between">
+                <div>
+                  <div class="stat-label" data-i18n="outputCapacity">
+                    Output Capacity
+                  </div>
+                  <div class="stat" id="stat-ah">0.000 Ah</div>
+                </div>
+                <div>
+                  <div class="stat-label" data-i18n="outputEnergy">Output Energy</div>
+                  <div class="stat" id="stat-wh">0.000 Wh</div>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="chk-metering" />
+                  <span></span>
+                </label>
+              </div>
+
+              <h2 class="mt" data-i18n="brightness">Brightness</h2>
+              <div class="row">
+                <input type="range" id="rng-bright" min="1" max="14" value="7" />
+                <span class="stat" id="val-bright">7</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============ ADVANCED ============ -->
+        <section class="view" id="view-advanced">
+          <div class="card">
+            <div class="row between">
+              <h2 data-i18n="expressData">Program</h2>
+              <div class="segmented">
+                <button class="seg active" data-mode="auto" data-i18n="autoMode">
+                  Auto Mode
+                </button>
+                <button class="seg" data-mode="manual" data-i18n="manualMode">
+                  Manual Mode
+                </button>
+              </div>
+            </div>
+
+            <div class="table-wrap">
+              <table class="steps" id="steps-table">
+                <thead>
+                  <tr>
+                    <th data-i18n="number">No.</th>
+                    <th data-i18n="vSet">V-SET(V)</th>
+                    <th data-i18n="iSet">I-SET(A)</th>
+                    <th data-i18n="delayS">Delay (S)</th>
+                    <th data-i18n="status">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="steps-body"></tbody>
+              </table>
+            </div>
+
+            <div class="row wrap gap">
+              <label class="inline">
+                <span data-i18n="numberOfCycles">Cycles</span>
+                <input type="number" id="prog-cycles" min="1" max="255" value="1" />
+              </label>
+              <label class="inline">
+                <span data-i18n="startNumber">Start</span>
+                <input type="number" id="prog-start" min="1" value="1" />
+              </label>
+              <label class="inline">
+                <span data-i18n="stopNumber">Stop</span>
+                <input type="number" id="prog-stop" min="1" value="10" />
+              </label>
+              <label class="inline">
+                <span data-i18n="currentNumber">Current</span>
+                <strong id="prog-current">—</strong>
+              </label>
+              <label class="inline">
+                <span data-i18n="currentCycle">Cycle</span>
+                <strong id="prog-cycle">—</strong>
+              </label>
+            </div>
+
+            <div class="row gap" id="auto-controls">
+              <button class="primary" id="btn-prog-start" data-i18n="start">Start</button>
+              <button class="ghost" id="btn-prog-pause" data-i18n="pause">Pause</button>
+              <button class="ghost" id="btn-prog-resume" data-i18n="continue">
+                Continue
+              </button>
+              <button class="danger" id="btn-prog-stop" data-i18n="stop">Stop</button>
+              <button class="ghost" id="btn-rows-add">+ row</button>
+              <button class="ghost" id="btn-rows-del">− row</button>
+            </div>
+            <div class="row gap hidden" id="manual-controls">
+              <button class="primary" id="btn-step-next" data-i18n="singleStep">
+                Single Step
+              </button>
+              <button class="danger" id="btn-step-stop" data-i18n="stop">Stop</button>
+            </div>
+          </div>
+
+          <div class="grid two mt">
+            <div class="card">
+              <h2 data-i18n="voltageScan">Voltage Scan</h2>
+              <label class="inline wide">
+                <span data-i18n="outputCurrent">Output Current</span>
+                <input type="number" id="vs-a" step="0.001" value="1.000" />
+              </label>
+              <label class="inline wide">
+                <span data-i18n="voltageStartValue">Start</span>
+                <input type="number" id="vs-start" step="0.01" value="1.00" />
+              </label>
+              <label class="inline wide">
+                <span data-i18n="voltageStopValue">Stop</span>
+                <input type="number" id="vs-stop" step="0.01" value="5.00" />
+              </label>
+              <label class="inline wide">
+                <span data-i18n="voltageStepValue">Step</span>
+                <input type="number" id="vs-step" step="0.01" value="1.00" />
+              </label>
+              <label class="inline wide">
+                <span data-i18n="delay">Delay (s)</span>
+                <input type="number" id="vs-delay" min="1" max="86400" value="1" />
+              </label>
+              <div class="row gap mt">
+                <button class="primary" id="btn-vs-run" data-i18n="run">Run</button>
+                <button class="danger" id="btn-vs-stop" data-i18n="stop">Stop</button>
+              </div>
+            </div>
+
+            <div class="card">
+              <h2 data-i18n="currentScan">Current Scan</h2>
+              <label class="inline wide">
+                <span data-i18n="outputVoltage">Output Voltage</span>
+                <input type="number" id="as-v" step="0.01" value="5.00" />
+              </label>
+              <label class="inline wide">
+                <span data-i18n="currentStartValue">Start</span>
+                <input type="number" id="as-start" step="0.001" value="1.000" />
+              </label>
+              <label class="inline wide">
+                <span data-i18n="currentStopValue">Stop</span>
+                <input type="number" id="as-stop" step="0.001" value="5.000" />
+              </label>
+              <label class="inline wide">
+                <span data-i18n="currentStepValue">Step</span>
+                <input type="number" id="as-step" step="0.001" value="1.000" />
+              </label>
+              <label class="inline wide">
+                <span data-i18n="delay">Delay (s)</span>
+                <input type="number" id="as-delay" min="1" max="86400" value="1" />
+              </label>
+              <div class="row gap mt">
+                <button class="primary" id="btn-as-run" data-i18n="run">Run</button>
+                <button class="danger" id="btn-as-stop" data-i18n="stop">Stop</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============ RECORDING ============ -->
+        <section class="view" id="view-recording">
+          <div class="card">
+            <div class="row between">
+              <div class="row gap">
+                <label class="chip v">
+                  <input type="checkbox" id="chk-series-v" checked />
+                  <span>Voltage</span>
+                </label>
+                <label class="chip a">
+                  <input type="checkbox" id="chk-series-a" checked />
+                  <span>Current</span>
+                </label>
+              </div>
+              <div class="row gap">
+                <span class="hint">
+                  <span data-i18n="samples">Samples</span>
+                  <strong id="rec-count">0</strong>
+                </span>
+                <button class="primary" id="btn-rec" data-i18n="recordStart">
+                  Start
+                </button>
+                <button class="ghost" id="btn-rec-clear" data-i18n="clear">Clear</button>
+                <button class="ghost" id="btn-rec-export" data-i18n="export">
+                  Export CSV
+                </button>
+              </div>
+            </div>
+            <canvas id="chart" class="chart"></canvas>
+            <p class="hint">Scroll to zoom · drag to pan · double-click to reset</p>
+          </div>
+
+          <div class="card mt">
+            <div class="table-wrap short">
+              <table class="steps">
+                <thead>
+                  <tr>
+                    <th data-i18n="recordTime">Record Time</th>
+                    <th data-i18n="outputVoltage">Output Voltage</th>
+                    <th data-i18n="outputCurrent">Output Current</th>
+                    <th data-i18n="switchStatus">Switch Status</th>
+                    <th data-i18n="outputMode">Output Mode</th>
+                    <th data-i18n="operatingStatus">Operating Status</th>
+                  </tr>
+                </thead>
+                <tbody id="rec-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============ SETTINGS ============ -->
+        <section class="view" id="view-settings">
+          <div class="grid two">
+            <div class="card">
+              <h2 data-i18n="parameterSetting">Parameter Setting</h2>
+              <label class="inline wide">
+                <span data-i18n="ovpLabel">OVP</span>
+                <input type="number" id="lim-ovp" step="0.01" />
+                <em>V</em>
+              </label>
+              <label class="inline wide">
+                <span data-i18n="ocpLabel">OCP</span>
+                <input type="number" id="lim-ocp" step="0.001" />
+                <em>A</em>
+              </label>
+              <label class="inline wide">
+                <span data-i18n="oppLabel">OPP</span>
+                <input type="number" id="lim-opp" step="0.01" />
+                <em>W</em>
+              </label>
+              <label class="inline wide">
+                <span data-i18n="otpLabel">OTP</span>
+                <input type="number" id="lim-otp" step="1" />
+                <em>°C</em>
+              </label>
+              <label class="inline wide">
+                <span data-i18n="lvpLabel">LVP</span>
+                <input type="number" id="lim-lvp" step="0.01" />
+                <em>V</em>
+              </label>
+              <button class="primary wide mt" id="btn-limits" data-i18n="save">
+                Save
+              </button>
+            </div>
+
+            <div class="card">
+              <h2 data-i18n="languageSetting">Language Setting</h2>
+              <select id="sel-lang"></select>
+
+              <h2 class="mt" data-i18n="firmwareUpgrade">Firmware Upgrade</h2>
+              <ol class="steps-list">
+                <li>
+                  <div class="row between">
+                    <span>Select a firmware file</span>
+                    <button class="ghost" id="btn-fw-choose">Choose file…</button>
+                  </div>
+                  <div class="fw-file" id="fw-file">No file selected</div>
+                </li>
+                <li>
+                  <div class="row between">
+                    <span>Put the supply into update mode</span>
+                    <button class="danger" id="btn-fw-enter" disabled>
+                      Update Firmware
+                    </button>
+                  </div>
+                </li>
+                <li>
+                  <div class="row between">
+                    <span>Copy the firmware to the drive it exposes</span>
+                    <button class="ghost" id="btn-fw-copy" disabled>Copy to…</button>
+                  </div>
+                </li>
+                <li>Power-cycle the supply to finish.</li>
+              </ol>
+              <p class="hint" data-i18n="upgradeHint"></p>
+
+              <h2 class="mt" data-i18n="aboutTitle">About</h2>
+              <dl class="info">
+                <dt data-i18n="appTitle">Application</dt>
+                <dd>FNIRSI PSU Control</dd>
+                <dt data-i18n="softwareVersion">Software Version</dt>
+                <dd id="about-version">—</dd>
+                <dt>Electron</dt>
+                <dd id="about-electron">—</dd>
+              </dl>
+              <p class="hint">
+                An independent, open-source reimplementation. Not affiliated with
+                or endorsed by FNIRSI.
+              </p>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script src="../shared/i18n.js"></script>
+    <script src="chart.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

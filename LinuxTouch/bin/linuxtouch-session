@@ -1,0 +1,44 @@
+#!/bin/sh
+# linuxtouch-session — the compositor session.
+#
+# This is the Exec target of /usr/share/wayland-sessions/linuxtouch.desktop, so
+# it is started by the display manager as a real logind session.
+#
+# WHY A DISPLAY-MANAGER SESSION AND NOT A SYSTEM SERVICE
+# ------------------------------------------------------
+# It would be tidier-looking to run sway from a systemd system unit with
+# User= and seatd, the way a kiosk usually does. That path costs more than it
+# saves here, because LinuxTouch has to change network settings and power the
+# device off, and both are polkit-gated.
+#
+# polkit grants those to a user with an *active local session*. A system unit
+# is not a session, so nmcli would fail with "not authorized" and
+# `systemctl poweroff` would prompt for a password on a device with no way to
+# type into a prompt it never shows. The usual workaround is a pile of custom
+# polkit rules granting a service account the permissions a logged-in user
+# would already have.
+#
+# Going through the display manager makes all of that unnecessary: the session
+# is active and local, so NetworkManager and logind simply say yes. See
+# docs/architecture.md.
+set -u
+
+export XDG_CURRENT_DESKTOP=sway
+export XDG_SESSION_DESKTOP=linuxtouch
+export XDG_SESSION_TYPE=wayland
+
+# Ozone/Wayland for anything Chromium- or Electron-based, so those apps get
+# real Wayland surfaces that sway can fullscreen, rather than XWayland windows
+# that ignore the rules.
+export ELECTRON_OZONE_PLATFORM_HINT=auto
+
+# Qt and GTK both need telling, or they fall back to X11 under XWayland where
+# touch arrives as emulated pointer events and kinetic scrolling is lost.
+export QT_QPA_PLATFORM="wayland;xcb"
+export GDK_BACKEND="wayland,x11"
+
+# Qt applications draw touch-sized controls only when told the device is a
+# touchscreen; without this, hit targets in Qt apps stay desktop-sized.
+export QT_QUICK_CONTROLS_MOBILE=1
+
+exec sway --config /etc/linuxtouch/sway/config "$@"

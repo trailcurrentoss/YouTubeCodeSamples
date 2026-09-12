@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=LinuxTouch
+Comment=Touch-first shell for the PocketTerm35
+Exec=/usr/local/bin/linuxtouch-session
+Type=Application
+DesktopNames=sway

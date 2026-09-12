@@ -1,0 +1,98 @@
+# Repo-wide backstop. Each sample also carries its own .gitignore; these
+# patterns cover anything a build pulls down or produces, so a new sample is
+# covered before it gets a file of its own.
+#
+# Rule of thumb: sources, layer definitions, and configuration are tracked.
+# Anything a build downloads or emits is not — it is large, machine-specific,
+# and reproducible from what is tracked.
+
+# AI agent configuration (local only — never commit)
+.claude
+.claude/
+.claude.md
+CLAUDE.md
+CLAUDE.MD
+.cursorrules
+.cursor/
+.github/copilot*
+.aider*
+.continue/
+.codeium/
+.tabnine*
+.sourcery.yaml
+
+# --- Raspberry Pi / embedded Linux image output ---------------------------
+# Flashable images run to multiple GB and rebuild from the tracked layers.
+*.img
+*.img.xz
+*.img.gz
+*.img.zip
+*.img.bz2
+*.img.zst
+*.img.sha256
+*.wic
+*.wic.xz
+*.iso
+*.sdcard
+
+# rpi-image-gen staging, output, and its own pinned checkout
+**/image/work/
+**/image/deploy/
+**/rpi-image-gen/
+
+# --- Build output ---------------------------------------------------------
+build/
+dist/
+out/
+_build/
+target/debug/
+target/release/
+*.o
+*.a
+*.elf
+*.uf2
+*.dtbo
+
+# ESP-IDF. sdkconfig is generated from the tracked sdkconfig.defaults.
+sdkconfig
+sdkconfig.old
+dependencies.lock
+
+# --- Dependencies pulled at build time -----------------------------------
+node_modules/
+managed_components/
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+vendor/
+
+# --- Generated screen captures -------------------------------------------
+# Throwaway captures the capture tooling re-emits on every run: the numbered
+# iteration shots, the test-session sequence, and the live-preview scratch
+# file. Screenshots a README or doc page actually embeds stay tracked.
+**/shots/dev/
+**/shots/sess-*.png
+**/shots/live.png
+**/shots/root.png
+**/shots/out.png
+**/screenshots/dev/
+
+# --- Pulled off a device, not authored -----------------------------------
+# Stock-firmware dumps taken before reflashing, and live-mount snapshots.
+**/firmware/backup/
+**/firmware/circuitpy/
+
+# --- Local bench configuration -------------------------------------------
+# Holds the address of whichever board you are working against. See the
+# matching dev.env.example in each sample.
+**/scripts/dev.env
+
+# --- Editors / OS --------------------------------------------------------
+.vscode/
+.idea/
+*.swp
+.DS_Store
+*.log

@@ -1,0 +1,40 @@
+# AI agent configuration (local only — never commit)
+.claude
+.claude/
+.claude.md
+CLAUDE.md
+CLAUDE.MD
+.cursorrules
+.cursor/
+.github/copilot*
+.aider*
+.continue/
+.codeium/
+.tabnine*
+.sourcery.yaml
+
+# Local bench configuration. Holds the address of whichever board you are
+# working against. That value belongs to your bench, not to this repository —
+# see scripts/dev.env.example.
+scripts/dev.env
+
+# Build products
+overlays/*.dtbo
+image/work/
+image/deploy/
+dist/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+
+# Node
+node_modules/
+
+# Editors / OS
+*.swp
+.DS_Store

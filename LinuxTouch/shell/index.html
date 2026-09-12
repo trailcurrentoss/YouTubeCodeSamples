@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<!-- The panel is exactly 640x480 and Chromium runs with
+     --force-device-scale-factor=1, so one CSS pixel is one physical pixel.
+     user-scalable=no because a pinch on this shell is always an accident, and
+     there is no way back from a zoomed-in home screen without a keyboard
+     shortcut the user does not know. -->
+<meta name="viewport" content="width=640, height=480, initial-scale=1, user-scalable=no">
+<title>LinuxTouch</title>
+<link rel="stylesheet" href="css/shell.css">
+</head>
+<body>
+  <!-- Fixed structure: the status bar and hint bar never move, and the screen
+       stack in between is what changes. Keeping them outside the stack means a
+       screen transition can never animate the clock. -->
+  <header id="statusbar" class="statusbar"></header>
+
+  <main id="stack" class="stack">
+    <section id="screen-home"     class="screen" data-screen="home"></section>
+    <section id="screen-switcher" class="screen" data-screen="switcher" hidden></section>
+    <section id="screen-settings" class="screen" data-screen="settings" hidden></section>
+  </main>
+
+  <footer id="hints" class="hints"></footer>
+
+  <!-- Toasts are the only transient UI. No modal alert() anywhere: a blocking
+       dialog on a device whose Back button is a compositor keybind is a way to
+       get stuck. -->
+  <div id="toast" class="toast" hidden></div>
+
+  <!-- Confirmation sheet, used for shutdown and reboot. Deliberately not a
+       browser confirm(): that steals focus in a way sway cannot see, and its
+       buttons are far below the 44px touch target this screen needs. -->
+  <div id="sheet" class="sheet" hidden></div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

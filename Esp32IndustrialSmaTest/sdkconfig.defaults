@@ -1,0 +1,42 @@
+# Target: Waveshare ESP32-S3-RS485-CAN (ESP32-S3R8 -- 16 MB flash, 8 MB octal PSRAM)
+
+CONFIG_IDF_TARGET="esp32s3"
+
+# --- Flash / PSRAM -----------------------------------------------------------
+CONFIG_ESPTOOLPY_FLASHSIZE_16MB=y
+CONFIG_ESPTOOLPY_FLASHMODE_QIO=y
+CONFIG_ESPTOOLPY_FLASHFREQ_80M=y
+CONFIG_SPIRAM=y
+CONFIG_SPIRAM_MODE_OCT=y
+CONFIG_SPIRAM_SPEED_80M=y
+
+# --- Partition table ---------------------------------------------------------
+CONFIG_PARTITION_TABLE_CUSTOM=y
+CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="partitions.csv"
+
+# --- Console -----------------------------------------------------------------
+# The board exposes the ESP32-S3's native USB peripheral on its Type-C port, so
+# the interactive console runs over USB Serial/JTAG. If your unit uses a USB-UART
+# bridge instead, switch this to CONFIG_ESP_CONSOLE_UART_DEFAULT (see README).
+CONFIG_ESP_CONSOLE_USB_SERIAL_JTAG=y
+
+# --- Wi-Fi -------------------------------------------------------------------
+# Static buffers keep RF behaviour repeatable between the two antenna runs.
+CONFIG_ESP_WIFI_STATIC_RX_BUFFER_NUM=16
+CONFIG_ESP_WIFI_DYNAMIC_RX_BUFFER_NUM=32
+CONFIG_ESP_WIFI_AMPDU_TX_ENABLED=y
+CONFIG_ESP_WIFI_AMPDU_RX_ENABLED=y
+
+# Modem sleep is disabled at runtime via esp_wifi_set_ps(WIFI_PS_NONE) in
+# wifi_link.c -- parking the radio between beacons adds variance to the RSSI
+# series, which is exactly what this test is trying to measure.
+
+# --- Main task ---------------------------------------------------------------
+CONFIG_ESP_MAIN_TASK_STACK_SIZE=6144
+
+# --- Logging -----------------------------------------------------------------
+CONFIG_LOG_DEFAULT_LEVEL_INFO=y
+CONFIG_LOG_MAXIMUM_LEVEL_DEBUG=y
+
+# --- lwIP: needed for the ICMP link-quality probe ----------------------------
+CONFIG_LWIP_IPV4=y

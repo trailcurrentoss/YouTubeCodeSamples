@@ -1,0 +1,161 @@
+#!/bin/sh
+# TrailShell session startup, launched by the display manager.
+#
+# Order matters: openbox must own the screen before TrailShell sets its EWMH
+# struts, or the struts are applied against no window manager and every app
+# opens full-bleed underneath the status bar.
+#
+# SAFETY: this device autologins and its greeter (pi-greeter) has NO session
+# picker, so a session that fails to start would leave no way back into a GUI.
+# If TrailShell exits non-zero soon after launch, this script hands the display
+# to the stock Raspberry Pi desktop instead of leaving a black screen. See
+# FALLBACK_WINDOW below.
+set -u
+
+export XDG_CURRENT_DESKTOP=TrailShell
+export XDG_SESSION_DESKTOP=trailshell
+
+LOG_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/trailshell"
+mkdir -p "$LOG_DIR"
+LOG="$LOG_DIR/session.log"
+exec 2>>"$LOG"
+echo "=== TrailShell session start $(date -Is) ===" >>"$LOG"
+
+CONF_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/trailshell"
+OB_CONF="$CONF_DIR/openbox-rc.xml"
+[ -f "$OB_CONF" ] || OB_CONF=/usr/share/trailshell/openbox-rc.xml
+
+# If TrailShell dies within this many seconds of starting, treat it as "failed
+# to come up" rather than "the user logged out", and fall back.
+FALLBACK_WINDOW=25
+FALLBACK_SESSION=/usr/bin/startx-rpd
+
+# --- environment -------------------------------------------------------------
+# Pick up the Raspberry Pi OS XDG overrides so app names and icons match what
+# the rest of the system shows. Sourced defensively: it is not our file.
+if [ -r /usr/bin/setup_env ]; then
+    . /usr/bin/setup_env 2>/dev/null || true
+fi
+# setup_env writes a literal "~" into XDG_DATA_DIRS, which nothing expands.
+# Put a real path back so ~/.local/share/applications is actually searched.
+XDG_DATA_DIRS=$(printf '%s' "${XDG_DATA_DIRS:-}" | sed "s|^~/|$HOME/|")
+export XDG_DATA_DIRS="${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
+
+# A session bus is required for the notification server. pam_systemd normally
+# provides one at /run/user/<uid>/bus; only spawn a private one if it did not.
+if [ -z "${DBUS_SESSION_BUS_ADDRESS:-}" ] && command -v dbus-launch >/dev/null 2>&1; then
+    eval "$(dbus-launch --sh-syntax --exit-with-session)"
+fi
+
+# --- app scaling -------------------------------------------------------------
+# The panel is ~228 PPI. TrailShell itself sizes everything in absolute device
+# pixels and is immune to this, but ordinary GTK/Qt apps would render their UI
+# at 96 DPI and be physically microscopic: 11pt would be a 1.6 mm em.
+#
+# 144 DPI (1.5x) puts a default 11pt app font at a 2.44 mm em, just under the
+# 2.67 mm TrailShell uses for its own body text.
+#
+# The trade-off is real and worth knowing: raising this also inflates every
+# application's *minimum* window size, and the app canvas is only 640x410. An
+# app that just fits at 120 may not fit at 144. TrailShell handles that with
+# the pan control rather than by shrinking text, on the grounds that unreadable
+# text is worse than a window you have to scroll - but if you would rather have
+# more apps fit, lower it:
+#
+#     python3 -c "import json,pathlib; \
+#       f=pathlib.Path.home()/'.config/trailshell/settings.json'; \
+#       d=json.loads(f.read_text()) if f.exists() else {}; d['app_dpi']=120; \
+#       f.parent.mkdir(parents=True,exist_ok=True); f.write_text(json.dumps(d,indent=2))"
+APP_DPI=$(python3 - <<'PY' 2>/dev/null || echo 144
+import json, pathlib
+f = pathlib.Path.home() / ".config/trailshell/settings.json"
+try:
+    print(int(json.loads(f.read_text()).get("app_dpi", 144)))
+except Exception:
+    print(144)
+PY
+)
+echo "app DPI: $APP_DPI" >>"$LOG"
+
+xrdb -merge <<XRDB
+Xft.dpi: $APP_DPI
+Xft.antialias: true
+Xft.hinting: true
+Xft.hintstyle: hintslight
+Xft.rgba: rgb
+XRDB
+
+# --- keyboard: name the gamepad buttons sensibly ------------------------------
+# The PocketTerm35's custom firmware sends F13-F18 for the L R X Y B A buttons
+# (see docs/keyboard-firmware.md). Those arrive as Linux KEY_F13..KEY_F18, but
+# the stock xkb evdev map labels X keycodes 191-196 "XF86Tools" and
+# "XF86Launch5".."XF86Launch9" - so anything binding "F13" silently never
+# fires, and applications show nonsense names in their shortcut editors.
+#
+# Rename them to the F13-F18 the hardware actually means. This is additive:
+# nothing else on this keyboard can produce these keycodes, and the buttons
+# stay available to ordinary applications rather than being grabbed globally.
+if command -v xmodmap >/dev/null 2>&1; then
+    xmodmap - <<'XMODMAP' 2>>"$LOG" || true
+keycode 191 = F13
+keycode 192 = F14
+keycode 193 = F15
+keycode 194 = F16
+keycode 195 = F17
+keycode 196 = F18
+XMODMAP
+fi
+
+# --- input -------------------------------------------------------------------
+# Hide the pointer shortly after it stops. The touchscreen drags the cursor
+# around with every tap, and a stranded arrow makes a touch UI look broken.
+if command -v unclutter >/dev/null 2>&1; then
+    unclutter --timeout 3 --jitter 10 --ignore-scrolling &
+    UNCLUTTER_PID=$!
+fi
+
+xsetroot -solid "#000000"
+xset s off -dpms        # never blank the panel behind the user's back
+
+# --- window manager ----------------------------------------------------------
+openbox --config-file "$OB_CONF" &
+OB_PID=$!
+
+# Wait for openbox to claim the screen so struts land on a live WM.
+i=0
+while [ $i -lt 25 ]; do
+    xprop -root _NET_SUPPORTING_WM_CHECK >/dev/null 2>&1 && break
+    i=$((i + 1))
+    sleep 0.2
+done
+
+# --- the shell ---------------------------------------------------------------
+# Prefer the installed wrapper, which carries the right PYTHONPATH; fall back
+# to the module so this script also works straight from a source checkout.
+if command -v trailshell >/dev/null 2>&1; then
+    RUN=trailshell
+else
+    RUN="python3 -m trailshell"
+fi
+
+START=$(date +%s)
+$RUN "$@"
+RC=$?
+ELAPSED=$(( $(date +%s) - START ))
+echo "TrailShell exited rc=$RC after ${ELAPSED}s" >>"$LOG"
+
+if [ "$RC" -ne 0 ] && [ "$ELAPSED" -lt "$FALLBACK_WINDOW" ]; then
+    echo "FAILED TO START - falling back to $FALLBACK_SESSION" >>"$LOG"
+    # Hand the display over cleanly: the Pi desktop starts its own WM and
+    # would fight ours for the root window.
+    kill "$OB_PID" 2>/dev/null
+    [ -n "${UNCLUTTER_PID:-}" ] && kill "$UNCLUTTER_PID" 2>/dev/null
+    wait "$OB_PID" 2>/dev/null
+    unset XDG_CURRENT_DESKTOP XDG_SESSION_DESKTOP
+    exec "$FALLBACK_SESSION"
+fi
+
+# Normal logout: tear down the WM so the DM sees the session end.
+kill "$OB_PID" 2>/dev/null
+[ -n "${UNCLUTTER_PID:-}" ] && kill "$UNCLUTTER_PID" 2>/dev/null
+exit "$RC"

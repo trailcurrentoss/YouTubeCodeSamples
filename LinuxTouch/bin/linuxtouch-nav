@@ -1,0 +1,40 @@
+#!/bin/sh
+# linuxtouch-nav — hand a global navigation event to touchd.
+#
+# This is what sway's two global keybinds execute. It is deliberately tiny and
+# deliberately silent: it runs on the compositor's hot path, so it must never
+# block, never prompt, and never write to a terminal that nobody is reading.
+#
+#   linuxtouch-nav home       Start  — show the home screen
+#   linuxtouch-nav back       Select — leave the focused app, keep it running
+#   linuxtouch-nav switcher   Shift+Start — open the app switcher
+#
+# touchd, not this script, decides what each action means in context. That is
+# why "press Start again from home to get the switcher" needs no state here.
+#
+# Exit status is always 0. A failure to reach touchd means the daemon is down,
+# and there is nothing useful a keybind can do about that — surfacing an error
+# would only spawn a dialog on a device whose UI has already stopped working.
+set -u
+
+PORT="${LINUXTOUCH_PORT:-8720}"
+ACTION="${1:-home}"
+
+case "$ACTION" in
+    home|back|switcher) ;;
+    *)
+        echo "linuxtouch-nav: unknown action '$ACTION'" >&2
+        echo "usage: linuxtouch-nav home|back|switcher" >&2
+        exit 2
+        ;;
+esac
+
+# --max-time is the important flag. Without it a hung daemon would leave the
+# curl process alive for the kernel's full TCP timeout, and every subsequent
+# press would spawn another one.
+curl --silent --show-error --max-time 2 \
+     --request POST \
+     "http://127.0.0.1:${PORT}/nav/${ACTION}" \
+     >/dev/null 2>&1
+
+exit 0
