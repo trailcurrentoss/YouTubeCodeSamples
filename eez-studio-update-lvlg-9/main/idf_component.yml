@@ -1,0 +1,76 @@
+## IDF Component Manager manifest — TrailCurrent Power Dashboard on the
+## Waveshare ESP32-P4-WIFI6-Touch-LCD-7B (7" 1024x600 IPS + GT911 touch).
+
+dependencies:
+  # Waveshare's first-party BSP. Pins the EK79007 panel driver, the GT911
+  # touch driver and esp_lvgl_port internally, so there is one place that
+  # decides how the display comes up.
+  #
+  # This component declares `targets: [esp32p4]` in its own manifest, so
+  # `idf.py set-target esp32p4` MUST be run before the first build or the
+  # dependency solver fails with "no versions of
+  # waveshare/esp32_p4_wifi6_touch_lcd_7b match ^1.0.2".
+  waveshare/esp32_p4_wifi6_touch_lcd_7b:
+    version: "^1.0.2"
+    public: true
+    rules:
+      - if: target == esp32p4
+
+  # LVGL 9.2.2 — and the pin is tight on purpose.
+  #
+  # This MUST agree with settings.general.lvglVersion in
+  # GUI/TrailCurrentPowerDash.eez-project. EEZ Studio switches the API it
+  # emits on that version string: at 9.2.2 it generates
+  # lv_spangroup_new_span() and lv_spangroup_refr_mode(), while from 9.3
+  # onward it generates lv_spangroup_add_span() and lv_spangroup_refresh().
+  # Export a 9.3+ project against this pin and screens.c will not compile;
+  # export a 9.2.2 project against a 9.3+ library and it will not link.
+  #
+  # 9.2.2 is also the version the EEZ Studio simulator container checks out
+  # for a 9.2.2 project, so device and simulator run the same LVGL.
+  lvgl/lvgl:
+    version: "~9.2.2"
+    public: true
+
+  # esp_lvgl_port has to be pinned alongside LVGL, and this one is not
+  # optional.
+  #
+  # The Waveshare BSP asks for "^2", which resolves to the newest 2.x — 2.9.0
+  # at the time of writing. 2.9.0 is written against LVGL 9.3+: it references
+  # LV_COLOR_FORMAT_RGB565_SWAPPED and the DPI panel callback
+  # on_frame_buf_complete, neither of which exists in 9.2.2. Left unpinned the
+  # build fails inside the component itself, in esp_lvgl_port_disp.c, with
+  # errors that look like an IDF or BSP problem and have nothing to do with
+  # this project's code.
+  #
+  # 2.7.2 is the version the public Waveshare 7B + LVGL 9.2.2 boilerplate is
+  # tested against. Bump this and the LVGL pin above together, never one alone.
+  espressif/esp_lvgl_port:
+    version: "~2.7.2"
+    public: true
+
+  # Wi-Fi on the P4 comes from the on-board ESP32-C6 over SDIO. esp_wifi_remote
+  # re-exports the ordinary esp_wifi_* API and forwards each call to the slave;
+  # esp_hosted is the transport underneath it.
+  #
+  # These two and the C6's own slave firmware are a matched set. If the slave
+  # is flashed with a build from a different esp_hosted generation, init
+  # succeeds and nothing ever scans, which looks like a code bug and is not.
+  espressif/esp_wifi_remote:
+    version: "^0.5"
+    rules:
+      - if: target == esp32p4
+  espressif/esp_hosted:
+    # 3.x, NOT the 0.0.x line. esp_wifi_remote only asks for ">=0.0.6", so an
+    # unpinned or loosely-pinned solve can land on 0.0.25, which is written
+    # against an older IDF where wifi_sta_config_t still had a "reserved"
+    # member. IDF 5.5 renamed it to "reserved1" and the component fails to
+    # compile inside itself:
+    #     rpc_req.c: 'wifi_sta_config_t' has no member named 'reserved'
+    # That error is in somebody else's component and reads like a broken SDK,
+    # so it is worth naming here: it is a version pin, nothing more.
+    version: "^3.0.7"
+    rules:
+      - if: target == esp32p4
+
+  idf: ">=5.3"

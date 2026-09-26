@@ -1,0 +1,67 @@
+# TrailCurrent Power Dashboard — local/generated state.
+#
+# Tracked: the .eez-project, the font assets it embeds, the hand-written C in
+# main/ (including main/UI/actions.c, vars.c and dash_data.c), and the build
+# configuration. Not tracked: anything a build downloads or emits.
+
+# AI agent configuration (local only — never commit)
+.claude
+.claude/
+.claude.md
+CLAUDE.md
+CLAUDE.MD
+.cursorrules
+.cursor/
+.github/copilot*
+.aider*
+.continue/
+.codeium/
+.tabnine*
+.sourcery.yaml
+
+# --- ESP-IDF ---------------------------------------------------------------
+build/
+sdkconfig
+sdkconfig.old
+dependencies.lock
+managed_components/
+
+# --- EEZ Studio ------------------------------------------------------------
+# Per-project editor UI state (which page/panel was open) — noise in a diff.
+*.eez-project-ui-state
+
+# Backups left by EEZ Studio's own saves and by the generator script.
+*.eez-project.bak
+*.eez-project.bak[0-9]
+*.eez-project.bak.*
+
+# The Docker simulator extracts its WebAssembly build next to the project.
+.docker-build-output/
+.emscripten-cache/
+
+# EEZ Studio's manifest of the files it generated, used to clean up stale ones
+# on the next export. Regenerated every time, so it only churns the diff.
+main/UI/.eez-project-build
+
+# NOTE: main/UI/ is deliberately NOT ignored. The EEZ Studio export is
+# committed so a clone builds without opening EEZ Studio first, and because
+# main/UI/ also holds the hand-written actions.c / vars.c / dash_data.c.
+
+# --- Local working state ---------------------------------------------------
+# One-shot generator and patch scripts. Reusable tooling belongs in the
+# eezstudio skill, not in the repo.
+tmp/
+GUI/tmp/
+**/tmp/
+__pycache__/
+*.py[cod]
+
+# --- Editors / OS ----------------------------------------------------------
+.vscode/
+.idea/
+*.swp
+.DS_Store
+*.log
+
+# EEZ Studio writes this sidecar when settings.general.cacheFonts is on.
+*.eez-project-fonts-cache

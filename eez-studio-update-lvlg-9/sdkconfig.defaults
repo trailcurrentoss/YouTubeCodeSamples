@@ -1,0 +1,150 @@
+# TrailCurrent Power Dashboard — Waveshare ESP32-P4-WIFI6-Touch-LCD-7B.
+#
+# Edit THIS file, never sdkconfig — sdkconfig is a generated artifact and is
+# gitignored, so an edit there is invisible to review and gone on the next
+# regeneration.
+#
+# IMPORTANT: these defaults only SEED a new sdkconfig. ESP-IDF does not
+# re-apply them to an sdkconfig that already exists, so adding or changing a
+# line here has no effect on an existing build tree. To pick up a change:
+#
+#   rm sdkconfig && idf.py build
+#
+# and then confirm with `grep CONFIG_THE_FLAG sdkconfig` that the value
+# actually landed. A flag that reads "# ... is not set" here but "=y" in this
+# file means the regeneration did not happen.
+
+CONFIG_IDF_TARGET="esp32p4"
+
+# --- Flash: the Waveshare board ships 32 MB. ---
+CONFIG_ESPTOOLPY_FLASHSIZE_32MB=y
+CONFIG_ESPTOOLPY_FLASHSIZE="32MB"
+CONFIG_ESPTOOLPY_FLASHMODE_QIO=y
+
+# --- Experimental-features gate. On the P4, CONFIG_SPIRAM_SPEED_200M is
+#     hidden behind this symbol; without it the PSRAM clock silently falls
+#     back to 80 MHz. Every LVGL draw buffer and the DPI framebuffer live in
+#     PSRAM, so the lost bandwidth is visible as tearing on this panel. ---
+CONFIG_IDF_EXPERIMENTAL_FEATURES=y
+
+# --- PSRAM: required. One framebuffer at 1024x600x2 is ~1.2 MB; with no
+#     PSRAM the display init returns ESP_ERR_NO_MEM at boot. ---
+CONFIG_SPIRAM=y
+CONFIG_SPIRAM_MODE_HEX=y
+CONFIG_SPIRAM_SPEED_200M=y
+CONFIG_SPIRAM_BOOT_INIT=y
+CONFIG_SPIRAM_USE_MALLOC=y
+CONFIG_SPIRAM_MALLOC_ALWAYSINTERNAL=16384
+CONFIG_SPIRAM_ALLOW_STACK_EXTERNAL_MEMORY=y
+CONFIG_SPIRAM_MALLOC_RESERVE_INTERNAL=131072
+
+# --- L2 cache geometry: Espressif's recommended P4 setup for MIPI-DSI plus
+#     PSRAM bandwidth. ---
+CONFIG_CACHE_L2_CACHE_256KB=y
+CONFIG_CACHE_L2_CACHE_LINE_128B=y
+
+# --- MMU page size (P4 spec). ---
+CONFIG_MMU_PAGE_SIZE_64KB=y
+
+# --- Custom partition table (partitions.csv in the project root). ---
+CONFIG_PARTITION_TABLE_CUSTOM=y
+CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="partitions.csv"
+
+# --- LVGL colour depth: 16-bit RGB565 matches the EK79007 setup the
+#     Waveshare BSP uses. ---
+CONFIG_LV_COLOR_DEPTH_16=y
+
+# --- LVGL memory: use the C library allocator so LVGL's heap comes out of the
+#     PSRAM-backed system heap rather than a fixed internal-RAM pool.
+#
+#     LVGL 9 renamed this. The 8.x spelling was CONFIG_LV_MEM_CUSTOM; in 9.x it
+#     is a choice between LV_USE_BUILTIN_MALLOC / LV_USE_CLIB_MALLOC /
+#     LV_USE_CUSTOM_MALLOC. An 8.x name here is silently ignored except for a
+#     "unknown kconfig symbol" warning, and LVGL quietly keeps its small
+#     built-in pool. ---
+CONFIG_LV_USE_CLIB_MALLOC=y
+
+# --- Refresh AND input-read period, 10 ms.
+#
+#     Another LVGL 8 -> 9 change: 8.x had two symbols,
+#     LV_DISP_DEF_REFR_PERIOD and LV_INDEV_DEF_READ_PERIOD. 9.x has one,
+#     LV_DEF_REFR_PERIOD, and its help text is explicit that it sets "display
+#     refresh, input device read and animation step period" together. So the
+#     touch cadence is no longer independently tunable.
+#
+#     10 ms rather than 16 ms because the Waveshare board leaves the GT911 INT
+#     line unconnected, which puts LVGL in polling mode for touch — at a slower
+#     cadence quick taps get missed. LVGL only repaints invalidated areas, so
+#     the faster timer costs a handler call, not a redraw. ---
+CONFIG_LV_DEF_REFR_PERIOD=10
+
+# --- Keep LVGL's default theme compiled in. EEZ Studio's generated
+#     screens.c calls lv_theme_default_init() unconditionally, so disabling
+#     LV_USE_THEME_DEFAULT breaks the export. ---
+CONFIG_LV_USE_THEME_DEFAULT=y
+
+# --- Built-in Montserrat sizes.
+#
+#     Every plain-text style in the .eez-project references MONTSERRAT_<n>,
+#     which EEZ Studio emits as &lv_font_montserrat_<n> — an LVGL built-in,
+#     not a generated ui_font_*.c. Each size used therefore has to be enabled
+#     here or the link fails on the missing symbol. The sizes below are exactly
+#     the ones the project uses; the merged "dashicons" and RobotoMono fonts
+#     are custom and come out of main/UI/ui_font_*.c instead.
+#
+#     The simulator needs no equivalent step: the eez-open simulator's
+#     lv_conf.h already enables every Montserrat size. ---
+CONFIG_LV_FONT_MONTSERRAT_12=y
+CONFIG_LV_FONT_MONTSERRAT_14=y
+CONFIG_LV_FONT_MONTSERRAT_16=y
+CONFIG_LV_FONT_MONTSERRAT_20=y
+CONFIG_LV_FONT_MONTSERRAT_28=y
+CONFIG_LV_FONT_DEFAULT_MONTSERRAT_14=y
+
+# --- Main task on core 0; the LVGL port task pins itself to core 1 inside
+#     bsp_display_start_with_config(), giving panel refresh its own core. ---
+CONFIG_ESP_MAIN_TASK_AFFINITY_CPU0=y
+
+# --- Task watchdog. ui_init() builds the whole screen tree on core 0 and can
+#     run past the default 5 s on a cold cache. ---
+CONFIG_ESP_TASK_WDT_TIMEOUT_S=15
+
+# --- FreeRTOS 1 kHz tick. ---
+CONFIG_FREERTOS_HZ=1000
+
+# --- -O2. Assertions stay on; this is demonstration firmware and a silent
+#     wrong answer is worse than a loud abort. ---
+CONFIG_COMPILER_OPTIMIZATION_PERF=y
+CONFIG_COMPILER_OPTIMIZATION_ASSERTIONS_ENABLE=y
+
+# --- Waveshare BSP: double-buffer the DPI panel through esp_lvgl_port. ---
+CONFIG_BSP_LCD_DPI_BUFFER_NUMS=2
+
+# --- Wi-Fi co-processor -----------------------------------------------------
+# The ESP32-P4 has no radio; this board carries an ESP32-C6 reached over SDIO
+# by esp_hosted. esp_wifi_remote's Kconfig defaults the slave chip to ESP32:
+#
+#     choice SLAVE_IDF_TARGET
+#         default SLAVE_IDF_TARGET_ESP32
+#
+# Leave that default in place on a C6 board and the SDIO link comes up, the
+# host reads the slave's chip id, and then the handshake fails with
+#
+#     eh_init_evt: esp-hosted fw versions: host=3.0.7 coprocessor=0.0.0
+#     E eh_init_evt: chip mismatch: expect=0x00 got=0x0d
+#
+# 0x00 is ESP32, 0x0d is ESP32-C6 — the host is asking the wrong chip's
+# questions. The "coprocessor=0.0.0" in that line is a symptom, not the cause:
+# the version RPC fails along with everything else, which makes this look like
+# stale C6 firmware needing a reflash over the board's C6 UART header. It does
+# not. It is this one symbol.
+CONFIG_SLAVE_IDF_TARGET_ESP32C6=y
+
+# --- MQTT over TLS to Headwaters --------------------------------------------
+# The broker listens on 8883 with a self-signed certificate and no CA is
+# shipped on the panel, so server verification is disabled. Without these the
+# handshake fails inside esp-tls with mbedtls error 0x8017 ("No server
+# verification option set in esp_tls_cfg_t structure") and the MQTT client
+# only reports a generic transport error, which is a long way from the cause.
+CONFIG_ESP_TLS_INSECURE=y
+CONFIG_ESP_TLS_SKIP_SERVER_CERT_VERIFY=y

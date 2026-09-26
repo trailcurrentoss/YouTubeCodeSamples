@@ -1,0 +1,25 @@
+menu "TrailCurrent Power Dashboard"
+
+# Broker host, username and password are NOT here on purpose. They are
+# entered on the panel's Headwaters screen and stored in NVS -- a credential in
+# sdkconfig.defaults would be committed, and one in sdkconfig alone cannot be
+# changed without a rebuild and a cable. See main/UI/broker_cfg.h.
+
+config DASH_MQTT_KEEPALIVE
+    int "MQTT keepalive (seconds)"
+    default 60
+    help
+        60 s rather than the IDF default of 120. On the P4 the Wi-Fi link runs
+        over SDIO to the C6, and a PINGRESP that arrives late enough for the
+        client to give up shows as a connect/disconnect flap roughly every
+        30 s, with the broker logging "closed by client". A shorter keepalive
+        paired with a longer network timeout is what settles it.
+
+config DASH_MQTT_TIMEOUT_MS
+    int "MQTT network timeout (ms)"
+    default 20000
+    help
+        See DASH_MQTT_KEEPALIVE. The IDF default of 10 s is not enough headroom
+        on this transport.
+
+endmenu
