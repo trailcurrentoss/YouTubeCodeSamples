@@ -1,0 +1,22 @@
+#!/bin/sh
+# rotary-hid-companion postinst
+set -e
+
+if [ "$1" = "configure" ]; then
+    # Pick up the uaccess rule for a pad that is already plugged in.
+    udevadm control --reload-rules 2>/dev/null || true
+    udevadm trigger --subsystem-match=tty --action=change 2>/dev/null || true
+
+    # Enable the user service for every user's future sessions...
+    systemctl --global enable rotary-hid-companion.service >/dev/null 2>&1 || true
+
+    # ...and (re)start it now for anyone already logged in, so installing
+    # does not need a log-out. Best effort: a headless install has nobody.
+    for uid in $(loginctl list-users --no-legend 2>/dev/null | awk '{print $1}'); do
+        user="$(id -nu "$uid" 2>/dev/null)" || continue
+        systemctl --user -M "$user@" daemon-reload 2>/dev/null || true
+        systemctl --user -M "$user@" restart rotary-hid-companion.service 2>/dev/null || true
+    done
+fi
+
+exit 0

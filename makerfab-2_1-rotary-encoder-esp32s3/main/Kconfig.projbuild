@@ -1,0 +1,64 @@
+menu "Rotary Macro Pad"
+
+config ROTARY_STEP_DEG
+    int "Rotation per detent (degrees)"
+    range 1 90
+    default 5
+    help
+      How far one click of the ring rotates the FreeCAD view or the Blender
+      selection. The design offers 1, 5, 15 and 45.
+
+      Blender gets this value typed in (R <axis> <step> Enter), so any value
+      works there. FreeCAD's RotaryHid add-on rotates by its own StepDeg
+      parameter (docs/apps.md, FreeCAD setup) -- set the two to the same
+      number or the angle shown on the pad will not match the view.
+
+config ROTARY_KDENLIVE_FRAMES_PER_DETENT
+    int "Kdenlive frames per ring click (frame mode)"
+    range 1 30
+    default 5
+    help
+      How far one click of the ring scrubs in frame mode. Kdenlive's arrow
+      keys move one frame and it has no "N frames" shortcut, so the pad
+      presses the arrow this many times per click (about 16 ms each). Set 1
+      for single-frame precision. Second mode is always one second per
+      click; tap the centre of the pad to switch.
+
+config ROTARY_VSCODIUM_LINES_PER_DETENT
+    int "VSCodium lines scrolled per ring click"
+    range 1 20
+    default 3
+    help
+      How far one click of the ring scrolls the editor in line mode. The pad
+      sends Ctrl+Up/Down (VS Code's scroll-line command, which scrolls
+      without moving the cursor) this many times per click. Push the ring to
+      switch to page scrolling (Alt+PgUp/PgDn).
+
+config ROTARY_LIBREOFFICE_LINES_PER_DETENT
+    int "LibreOffice lines per ring click"
+    range 1 20
+    default 3
+    help
+      How far one click of the ring moves in LibreOffice's line mode. The
+      pad presses Up/Down this many times per click; that moves the text
+      cursor in Writer and the active cell in Calc, and the view follows.
+      Push the ring to switch to PgUp/PgDn.
+
+config ROTARY_BROWSER_LINES_PER_DETENT
+    int "Firefox / Chromium lines scrolled per ring click"
+    range 1 20
+    default 3
+    help
+      How far one click of the ring scrolls a web page in line mode. The pad
+      presses Down/Up this many times per click (each is one arrow-key
+      scroll step in the browser). Push the ring to switch to PgUp/PgDn.
+
+config ROTARY_KDENLIVE_FPS
+    int "Kdenlive project frame rate"
+    range 1 120
+    default 30
+    help
+      Used only for the timecode and the scrub strip on the pad. The pad
+      cannot read the project's real frame rate.
+
+endmenu

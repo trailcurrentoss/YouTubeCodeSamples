@@ -1,0 +1,58 @@
+menu "MaTouch 2.1in board"
+
+config MATOUCH_LCD_SWAP_RB
+    bool "Swap the red and blue channels"
+    default y
+    help
+      The vendor firmware and the vendor wiki label the panel's red and blue
+      data pins opposite ways round. The pin map follows the wiki; this swaps
+      the groups when they are handed to esp_lcd. y is VERIFIED on hardware
+      (TrailCurrent Capstan). If red and blue look swapped, flip this rather
+      than editing the pin map.
+
+comment "Touch"
+
+config MATOUCH_TOUCH_MIRROR_X
+    bool "Mirror touch horizontally"
+    default n
+    help
+      Independent of the display transform. The touch layer is a separate
+      device whose axes are fixed by how it is bonded, so work this out on
+      the glass rather than copying the display's setting.
+
+config MATOUCH_TOUCH_MIRROR_Y
+    bool "Mirror touch vertically"
+    default n
+
+config MATOUCH_TOUCH_SWAP_XY
+    bool "Swap touch X and Y axes"
+    default n
+
+comment "Rotary ring"
+
+config MATOUCH_ENCODER_STEPS_PER_DETENT
+    int "Quadrature counts per detent"
+    range 1 8
+    default 4
+    help
+      Counts the 4x quadrature decoder produces per mechanical detent. Too
+      low and one felt click moves by two; too high and clicks are
+      swallowed. Enable MATOUCH_ENCODER_DEBUG and turn one detent to measure.
+
+config MATOUCH_ENCODER_INVERT
+    bool "Invert rotation direction"
+    default y
+    help
+      Clockwise must increase. VERIFIED on hardware: this board counts
+      backwards without it.
+
+config MATOUCH_ENCODER_DEBUG
+    bool "Log raw encoder counts"
+    default n
+
+config MATOUCH_LONG_PRESS_MS
+    int "Ring long-press duration (ms)"
+    range 300 3000
+    default 700
+
+endmenu

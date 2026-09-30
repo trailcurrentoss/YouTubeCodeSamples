@@ -1,0 +1,20 @@
+## VERSION PINNING IS LOAD-BEARING HERE. EEZ Studio emits different LVGL API
+## calls depending on settings.general.lvglVersion in the .eez-project. These
+## three must agree, and are bumped together or not at all:
+##
+##   - lvgl/lvgl here
+##   - lvglVersion in GUI/RotaryHid.eez-project (9.2.2)
+##   - whatever esp_lvgl_port was built against
+
+dependencies:
+  idf: ">=5.3"
+
+  lvgl/lvgl:
+    version: "~9.2.2"
+    public: true
+
+  # Display flush, touch indev, the LVGL task and its tick. A version of this
+  # built against a newer LVGL fails to compile inside itself.
+  espressif/esp_lvgl_port:
+    version: "~2.4"
+    public: true
