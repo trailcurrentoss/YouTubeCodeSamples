@@ -38,7 +38,7 @@ shapes of the Overlook PWA.
    dashboard address on your own network:
 
    ```
-   Dashboard ready:  http://192.168.1.57/
+   Dashboard ready:  http://192.168.1.100/
    Network        :  YourNetwork (-48 dBm)
    ```
 
