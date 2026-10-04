@@ -272,7 +272,7 @@ Speaker volume is `CONFIG_DEMO_AUDIO_SPEAKER_VOLUME` (default 80 of 100).
 
 A push button fitted between **header pin 35 (GPIO20)** and any ground pin
 turns the board into a voice terminal for
-[Peregrine](../../Product/TrailCurrentPeregrine), the local AI voice assistant.
+[Peregrine](https://github.com/trailcurrentoss/TrailCurrentPeregrine), the local AI voice assistant.
 Hold the button, ask a question, let go. The board uploads what it heard and
 plays the spoken answer through the speaker.
 
@@ -297,7 +297,7 @@ PEREGRINE_VOICE_TOKEN=<the token from ~/.peregrine-voice-token>
 ```
 
 The token is the one installed on the Peregrine box as `PEREGRINE_VOICE_TOKEN`
-— see [voice-terminal.md](../../Product/TrailCurrentPeregrine/docs/voice-terminal.md)
+— see [voice-terminal.md](https://github.com/trailcurrentoss/TrailCurrentPeregrine/blob/main/docs/voice-terminal.md)
 for generating it. Without **both** keys the button is inert and says so on the
 console rather than failing on every press; a rejected token is reported as
 `HTTP 401 — the bearer token was rejected`, since a mismatch between card and

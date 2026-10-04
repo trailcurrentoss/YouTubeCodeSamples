@@ -1,0 +1,21 @@
+idf_component_register(
+    SRCS
+        "src/crowpanel_board.c"
+        "src/board_display.c"
+        "src/board_touch.c"
+        "src/board_encoder.c"
+    INCLUDE_DIRS
+        "include"
+    PRIV_INCLUDE_DIRS
+        "src"
+    REQUIRES
+        esp_lcd
+        espressif__esp_lvgl_port
+        lvgl__lvgl
+        esp_driver_gpio
+        esp_driver_ledc
+        esp_driver_pcnt
+        esp_driver_i2c
+        esp_driver_spi
+        esp_timer
+)

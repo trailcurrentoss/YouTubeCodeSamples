@@ -11,7 +11,7 @@
  *
  *     # Peregrine voice assistant
  *     PEREGRINE_URL=http://peregrine.local:8081
- *     PEREGRINE_VOICE_TOKEN=8cb78a5aad34...
+ *     PEREGRINE_VOICE_TOKEN=<output of: openssl rand -hex 32>
  *
  * Recognized keys:
  *   PEREGRINE_URL           -> peregrine_voice_set_url()

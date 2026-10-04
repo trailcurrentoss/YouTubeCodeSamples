@@ -1,0 +1,13 @@
+#!/bin/sh
+# rotary-hid-companion prerm
+set -e
+
+if [ "$1" = "remove" ] || [ "$1" = "purge" ]; then
+    for uid in $(loginctl list-users --no-legend 2>/dev/null | awk '{print $1}'); do
+        user="$(id -nu "$uid" 2>/dev/null)" || continue
+        systemctl --user -M "$user@" stop rotary-hid-companion.service 2>/dev/null || true
+    done
+    systemctl --global disable rotary-hid-companion.service >/dev/null 2>&1 || true
+fi
+
+exit 0

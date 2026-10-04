@@ -1,0 +1,17 @@
+[Unit]
+Description=Rotary HID companion (tells the macro pad which app has focus)
+Documentation=file:///usr/share/doc/rotary-hid-companion/README.md
+# Runs inside the desktop session: it needs the session's DISPLAY to watch
+# window focus, and it should stop when the session ends.
+PartOf=graphical-session.target
+After=graphical-session.target
+
+[Service]
+ExecStart=/usr/bin/rotary-hid-companion --verbose
+# The companion exits if focus tracking stops (e.g. X restarted), so a
+# restart brings it back rather than leaving the pad on a stale app.
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=graphical-session.target

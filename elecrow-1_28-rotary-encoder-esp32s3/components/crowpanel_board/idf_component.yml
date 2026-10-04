@@ -1,0 +1,20 @@
+## Panel and touch drivers for the CrowPanel 1.28".
+
+dependencies:
+  # CST816D -- same register map and 0x15 address as the CST816S.
+  #
+  # Pinned to the esp_lcd_touch 1.1 series to stay in step with
+  # esp_lvgl_port ~2.4 (itself pinned to LVGL 9.2.2). esp_lcd_touch 1.2
+  # deprecates esp_lcd_touch_get_coordinates(), which esp_lvgl_port 2.4 still
+  # calls, so every build warns. cst816s 1.1.0 is the last driver release
+  # that accepts esp_lcd_touch 1.1; 1.1.1+ require ^1.2. Bump all of these
+  # together with esp_lvgl_port, never alone.
+  espressif/esp_lcd_touch:
+    version: "~1.1.2"
+  espressif/esp_lcd_touch_cst816s:
+    version: "1.1.0"
+
+  # GC9A01 -- 240x240, plain 4-wire SPI. The stock init table works on this
+  # glass (verified in the TrailCurrent Capstan firmware).
+  espressif/esp_lcd_gc9a01:
+    version: "^2.0"

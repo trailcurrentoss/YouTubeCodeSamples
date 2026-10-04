@@ -628,7 +628,7 @@ CONFIG_MBEDTLS_INTERNAL_MEM_ALLOC=n
 CONFIG_MBEDTLS_EXTERNAL_MEM_ALLOC=y
 CONFIG_MBEDTLS_DYNAMIC_BUFFER=y
 ```
-128 KB internal reserve is the sweet spot from the [Fireside project](../../Product/TrailCurrentFireside) — proven ESP32-P4 + ESP-Hosted config.
+128 KB internal reserve is the sweet spot from the [Fireside project](https://github.com/trailcurrentoss/TrailCurrentFireside) — proven ESP32-P4 + ESP-Hosted config.
 
 ---
 
@@ -1670,7 +1670,7 @@ missing. File format is `KEY=VALUE` per line with `#` comments:
 ```
 # Peregrine voice terminal
 PEREGRINE_URL=http://peregrine.local:8081
-PEREGRINE_VOICE_TOKEN=8cb78a5aad346241e6d5c5c19d7f2b48058eb602798752951a37bfbbacfe4f57
+PEREGRINE_VOICE_TOKEN=<output of: openssl rand -hex 32>
 ```
 
 Boot-time reader (see `main/sd_config.c`) mounts SD, opens the file,

@@ -51,7 +51,7 @@ Wi-Fi code in [main/wifi_manager.c](../main/wifi_manager.c) looks like
 ordinary ESP32 Wi-Fi code because the remote API is transparent.
 
 Note the SDMMC split: **slot 0 = microSD, slot 1 = C6 radio.** Both are in
-use; the card must stay pinned to slot 0 (see [storage.md](storage.md)).
+use; the card must stay pinned to slot 0 (see [Both SDMMC slots are in use](../README.md#both-sdmmc-slots-are-in-use--do-not-move-the-card)).
 
 ## Module map
 

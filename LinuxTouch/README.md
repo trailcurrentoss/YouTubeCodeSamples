@@ -73,7 +73,7 @@ Those two are the only buttons on this hardware that carry no character. A/B/X/Y
 are the literal letter keys, so binding them globally would make it impossible to type
 the letter "a" in a mail client. They are never grabbed. This is the single most
 important lesson carried over from
-[TrailCurrentTracer](../../Product/TrailCurrentTracer/docs/controls.md), where it was
+[TrailCurrentTracer](https://github.com/trailcurrentoss/TrailCurrentTracer/blob/main/docs/controls.md), where it was
 learned the hard way.
 
 ## Getting started
@@ -117,7 +117,7 @@ image/          rpi-image-gen layers for a flashable image
 
 - **Hardware layer** — the GT911 overlay, the `config.txt` block, the button keymap,
   and the boot-trim approach are ported from
-  [TrailCurrentTracer](../../Product/TrailCurrentTracer) (MIT, same author), where they
+  [TrailCurrentTracer](https://github.com/trailcurrentoss/TrailCurrentTracer) (MIT, same author), where they
   were verified on this same panel. Tracer is a single-purpose field tool built on
   `cage`; LinuxTouch is a general-purpose shell, which is why the compositor and the
   input model differ.

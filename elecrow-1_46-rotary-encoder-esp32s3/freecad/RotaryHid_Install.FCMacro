@@ -1,0 +1,60 @@
+# RotaryHid_Install.FCMacro -- one-time setup for the Rotary Macro Pad's ring.
+#
+# Run it once from FreeCAD: File -> Open this file, then press Run (or
+# Macro -> Execute macro). See docs/linux-setup.md, part 3. It:
+#
+#   1. copies the RotaryHid add-on (the folder beside this file) into your
+#      FreeCAD Mod folder, so it loads at every start, and
+#   2. activates it in the running FreeCAD, so the ring works immediately.
+#
+# Safe to run again (it updates the add-on in place). To remove it, delete
+# the RotaryHid folder from your Mod folder and restart FreeCAD.
+
+import os
+import shutil
+import sys
+
+import FreeCAD as App
+import FreeCADGui as Gui
+from PySide import QtGui
+
+try:
+    HERE = os.path.dirname(os.path.abspath(__file__))
+except NameError:
+    HERE = None
+
+if not HERE or not os.path.isfile(os.path.join(HERE, "RotaryHid", "rotaryhid.py")):
+    # Run from somewhere that does not say where this file lives: ask.
+    HERE = QtGui.QFileDialog.getExistingDirectory(
+        Gui.getMainWindow(), "Select the repository's freecad/ folder") or None
+
+SRC = os.path.join(HERE, "RotaryHid") if HERE else None
+MOD_DIR = os.path.join(App.getUserAppDataDir(), "Mod")
+DST = os.path.join(MOD_DIR, "RotaryHid")
+
+
+def install():
+    if not SRC or not os.path.isfile(os.path.join(SRC, "rotaryhid.py")):
+        raise FileNotFoundError(
+            "Run this installer from the repository's freecad/ folder, next to "
+            "the RotaryHid folder.")
+    os.makedirs(MOD_DIR, exist_ok=True)
+    if os.path.isdir(DST):
+        shutil.rmtree(DST)
+    shutil.copytree(SRC, DST, ignore=shutil.ignore_patterns("__pycache__"))
+
+    # Activate now, from the installed copy (a restart would do the same).
+    if DST not in sys.path:
+        sys.path.append(DST)
+    if "rotaryhid" in sys.modules:
+        sys.modules["rotaryhid"].uninstall()
+        del sys.modules["rotaryhid"]
+    import rotaryhid
+    n = rotaryhid.install()
+    return f"Installed to {DST}\nRing shortcuts active: X/Y/Z, both directions ({n} key bindings)."
+
+
+msg = "Rotary Macro Pad: " + install()
+App.Console.PrintMessage(msg + "\n")
+if not globals().get("ROTARYHID_QUIET"):
+    QtGui.QMessageBox.information(Gui.getMainWindow(), "Rotary Macro Pad", msg)

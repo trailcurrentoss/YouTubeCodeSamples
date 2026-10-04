@@ -1,0 +1,72 @@
+# Rotary HID — build configuration.
+#
+# NEVER edit `sdkconfig` directly -- it is generated and gitignored. Change
+# values here. This file only SEEDS a new sdkconfig; after changing anything:
+#
+#     rm sdkconfig && idf.py build
+#
+# Values below are carried over from the TrailCurrent Capstan firmware, where
+# they were verified on the CrowPanel 1.28".
+
+CONFIG_IDF_TARGET="esp32s3"
+
+# ---------------------------------------------------------------------------
+# Memory. Read off the silicon over USB: ESP32-S3 with 8 MB OCTAL PSRAM
+# ("AP_3v3", the R8 part) and 16 MB quad flash. The product page says only
+# "8MB PSRAM". The SPI panel's draw buffers stay in internal RAM (see
+# components/crowpanel_board/src/board_display.c); PSRAM holds the LVGL heap.
+# ---------------------------------------------------------------------------
+CONFIG_ESPTOOLPY_FLASHSIZE_16MB=y
+CONFIG_ESPTOOLPY_FLASHMODE_QIO=y
+CONFIG_ESPTOOLPY_FLASHFREQ_80M=y
+
+CONFIG_SPIRAM=y
+CONFIG_SPIRAM_MODE_OCT=y
+CONFIG_SPIRAM_SPEED_80M=y
+CONFIG_SPIRAM_USE_MALLOC=y
+# Small, latency-sensitive allocations stay internal; framebuffers and LVGL
+# objects land in PSRAM.
+CONFIG_SPIRAM_MALLOC_ALWAYSINTERNAL=16384
+
+CONFIG_ESP_DEFAULT_CPU_FREQ_MHZ_240=y
+
+CONFIG_PARTITION_TABLE_CUSTOM=y
+CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="partitions.csv"
+
+# ---------------------------------------------------------------------------
+# USB: TinyUSB owns the USB-C port (HID keyboard + one CDC serial port).
+#
+# That takes the PHY away from USB-Serial/JTAG, so the ESP console cannot
+# live there. It goes to UART0 (GPIO43/44, unused on this board), and
+# components/rotary_usb mirrors the log onto the CDC port as well. The
+# secondary console is turned off: by default it is USB-Serial/JTAG, which
+# would block on every write once TinyUSB holds the PHY.
+#
+# Flashing still works over the same cable -- see scripts/flash.sh.
+# ---------------------------------------------------------------------------
+CONFIG_ESP_CONSOLE_UART_DEFAULT=y
+CONFIG_ESP_CONSOLE_SECONDARY_NONE=y
+CONFIG_TINYUSB_CDC_ENABLED=y
+CONFIG_TINYUSB_CDC_COUNT=1
+CONFIG_TINYUSB_HID_COUNT=1
+
+# 1 kHz tick so LVGL input sampling is smooth while the ring turns; at 100 Hz
+# the encoder feels notchy.
+CONFIG_FREERTOS_HZ=1000
+
+# ---------------------------------------------------------------------------
+# LVGL 9. Every MONTSERRAT_<n> referenced from the .eez-project must be
+# enabled here or the build fails on an undeclared lv_font_montserrat_<n>.
+# ---------------------------------------------------------------------------
+CONFIG_LV_COLOR_DEPTH_16=y
+# The 240x240 UI uses 10, 12 and 14 (14 is also LVGL's default font).
+CONFIG_LV_FONT_MONTSERRAT_10=y
+CONFIG_LV_FONT_MONTSERRAT_12=y
+CONFIG_LV_FONT_MONTSERRAT_14=y
+
+# Route lv_malloc() to the ESP heap (which spills into PSRAM). LVGL's own pool
+# is a fixed 64 KB array, and when it runs out LV_ASSERT_MALLOC spins forever
+# -- the symptom is a task-watchdog loop, not an allocation error.
+CONFIG_LV_USE_CLIB_MALLOC=y
+CONFIG_LV_USE_CLIB_STRING=y
+CONFIG_LV_USE_CLIB_SPRINTF=y

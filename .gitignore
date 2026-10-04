@@ -58,6 +58,24 @@ sdkconfig
 sdkconfig.old
 dependencies.lock
 
+# EEZ Studio. The .eez-project is the source; these are its per-user state,
+# backups, and build caches. A sample's exported main/ui/ stays tracked.
+*.eez-project-ui-state
+*.eez-project.bak
+*.eez-project.bak[0-9]
+*.eez-project.bak.*
+*.eez-project-fonts-cache
+.docker-build-output/
+.emscripten-cache/
+**/main/ui/.eez-project-build
+
+# FreeCAD. The .FCStd is the source; these are the automatic backups it
+# writes on every save (name.FCBak, or name.FCStd1, .FCStd2, ... in older
+# versions).
+*.FCBak
+*.FCStd[0-9]
+*.FCStd[0-9][0-9]
+
 # --- Dependencies pulled at build time -----------------------------------
 node_modules/
 managed_components/
@@ -89,6 +107,10 @@ vendor/
 # Holds the address of whichever board you are working against. See the
 # matching dev.env.example in each sample.
 **/scripts/dev.env
+
+# --- Local working state -------------------------------------------------
+# Scratch space for one-off edit scripts and intermediate output.
+tmp/
 
 # --- Editors / OS --------------------------------------------------------
 .vscode/

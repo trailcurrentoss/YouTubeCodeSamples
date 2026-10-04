@@ -1,0 +1,4 @@
+## USB device stack: TinyUSB via Espressif's wrapper.
+dependencies:
+  espressif/esp_tinyusb:
+    version: "~2.3.0"

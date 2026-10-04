@@ -9,7 +9,7 @@ The unit was running **stock Raspberry Pi OS Trixie desktop** (labwc + `wf-panel
 `scripts/provision.sh` expects.
 
 Several of these findings independently reproduce what
-[TrailCurrentTracer](../../../Product/TrailCurrentTracer/docs/hardware.md) measured on
+[TrailCurrentTracer](https://github.com/trailcurrentoss/TrailCurrentTracer/blob/main/docs/hardware.md) measured on
 the same panel in September 2026. Where they agree, the agreement is noted — two
 separate SD cards on the same hardware is a stronger result than either alone.
 

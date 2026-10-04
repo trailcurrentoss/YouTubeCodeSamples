@@ -338,7 +338,7 @@ CONFIG_MBEDTLS_INTERNAL_MEM_ALLOC=n
 CONFIG_MBEDTLS_EXTERNAL_MEM_ALLOC=y
 CONFIG_MBEDTLS_DYNAMIC_BUFFER=y
 ```
-128 KB internal reserve is the sweet spot from the [Fireside project](../../Product/TrailCurrentFireside) — proven ESP32-P4 + ESP-Hosted config.
+128 KB internal reserve is the sweet spot from the [Fireside project](https://github.com/trailcurrentoss/TrailCurrentFireside) — proven ESP32-P4 + ESP-Hosted config.
 
 ---
 

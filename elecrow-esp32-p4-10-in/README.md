@@ -6,7 +6,7 @@ ESP32-C6 for WiFi) that walks the user through:
 
 1. **WiFi setup** — scan-and-pick, WPA2 password entry with on-screen keyboard.
 2. **Token auth** — paste a Bearer token, verified against a
-   [TrailCurrent Headwaters](../../Product/TrailCurrentHeadwaters) gateway on
+   [TrailCurrent Headwaters](https://github.com/trailcurrentoss/TrailCurrentHeadwaters) gateway on
    the LAN via `GET /api/auth/check`.
 3. **Map view** — 4×2 raster tile grid fetched from Headwaters and painted
    on-screen; pan/zoom via the on-screen controls.
@@ -88,9 +88,7 @@ The device fetches raster tiles from
 Headwaters' shipped nginx currently only serves the **PMTiles vector
 archive** at `/maps/tiles.pmtiles`. The ESP32-P4 can't reasonably render
 vector tiles, so a companion "raster tile proxy" needs to expose the endpoint
-above on the Headwaters device. See
-[PLANS/HeadwatersRasterProxy.md](PLANS/HeadwatersRasterProxy.md) for the
-proposed sidecar.
+above on the Headwaters device. That sidecar is proposed but not written yet.
 
 Until that proxy exists, `tile_task.c` falls back to
 `https://tile.openstreetmap.org/{z}/{x}/{y}.png` (requires the WiFi network

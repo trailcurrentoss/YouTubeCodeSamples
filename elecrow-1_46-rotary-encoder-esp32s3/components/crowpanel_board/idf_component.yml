@@ -1,0 +1,20 @@
+## Touch driver for the CrowPanel 1.46".
+##
+## There is deliberately no panel driver here: no esp_lcd component exists
+## for the JD9855, from Espressif or anyone else. It is driven by
+## src/panel_jd9855.c in this component, whose register table is transcribed
+## from LovyanGFX's Panel_ST77961 (what Elecrow's own firmware runs).
+
+dependencies:
+  # CST816D/T -- same register map and 0x15 address as the CST816S.
+  #
+  # Pinned to the esp_lcd_touch 1.1 series to stay in step with
+  # esp_lvgl_port ~2.4 (itself pinned to LVGL 9.2.2). esp_lcd_touch 1.2
+  # deprecates esp_lcd_touch_get_coordinates(), which esp_lvgl_port 2.4 still
+  # calls, so every build warns. cst816s 1.1.0 is the last driver release
+  # that accepts esp_lcd_touch 1.1; 1.1.1+ require ^1.2. Bump all of these
+  # together with esp_lvgl_port, never alone.
+  espressif/esp_lcd_touch:
+    version: "~1.1.2"
+  espressif/esp_lcd_touch_cst816s:
+    version: "1.1.0"

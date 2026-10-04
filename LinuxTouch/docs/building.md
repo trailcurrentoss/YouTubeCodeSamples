@@ -70,7 +70,7 @@ exists.
 
 The toolchain will be **`rpi-image-gen`**, not pi-gen — TrailCurrent already has
 a mature rpi-image-gen setup, and
-[TrailCurrentTracer](../../../Product/TrailCurrentTracer/docs/building.md) proved
+[TrailCurrentTracer](https://github.com/trailcurrentoss/TrailCurrentTracer/blob/main/docs/building.md) proved
 it out on this exact hardware: declarative layer YAML, a Docker-less
 reproducible build, bake-time verification, first-boot hooks, and a splash
 pipeline. Upstream ships a trixie minbase targeting rpi5, which is what

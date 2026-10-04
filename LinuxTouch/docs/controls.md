@@ -36,7 +36,7 @@ else is globally bound. Ever.
 
 ### Why this is simpler than Tracer
 
-[TrailCurrentTracer](../../../Product/TrailCurrentTracer/docs/controls.md) needed a
+[TrailCurrentTracer](https://github.com/trailcurrentoss/TrailCurrentTracer/blob/main/docs/controls.md) needed a
 *modal* input daemon — a `nav` mode where letters were swallowed as buttons and a
 `text` mode where they passed through — because Tracer's kiosk was the only thing on
 screen and had to serve both purposes from one keyboard.
@@ -113,9 +113,10 @@ still work, because the hardware keyboard is a real HID keyboard as far as it kn
 ## Re-capturing the keymap
 
 The mapping lives in the RP2040's CircuitPython `code.py`, so reflashing the Pico can
-move it. [`touchd/tools/capture_keymap.py`](../touchd/tools/capture_keymap.py) records
-keycodes on the device without `sudo` and without grabbing the keyboard. The default
-map is data, not code: [`touchd/keymap.default.json`](../touchd/keymap.default.json).
+move it. Tracer's
+[`tracerd/tools/capture_keymap.py`](https://github.com/trailcurrentoss/TrailCurrentTracer/blob/main/tracerd/tools/capture_keymap.py)
+(not yet ported to this repo) records keycodes on the device without `sudo` and
+without grabbing the keyboard. The default map is data, not code: [`touchd/keymap.default.json`](../touchd/keymap.default.json).
 
 **Never hardcode an event device number.** The keyboard was `event0` on Tracer's card
 and `event1` on this one — allocation order is not identity. Match on device name.

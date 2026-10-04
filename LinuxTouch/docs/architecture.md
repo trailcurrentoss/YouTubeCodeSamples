@@ -60,7 +60,7 @@ protocol client, and that protocol carries **no PID**, so "which window did my l
 produce?" becomes guesswork against app IDs and titles. sway hands that over as JSON.
 
 To keep this from being a one-way door, every compositor call in `touchd` goes through
-one interface — [`touchd/wm/base.py`](../touchd/wm/base.py):
+one interface — [`touchd/wm/base.py`](../touchd/touchd/wm/base.py):
 
 ```python
 class WindowManager:
@@ -81,7 +81,7 @@ replacement, and nothing above the adapter knows which compositor is running.
   than the app grid is worth.
 - **cage** hosts exactly one fullscreen client with no window management at all. It is
   the right choice for a single-purpose kiosk — which is why
-  [Tracer](../../../Product/TrailCurrentTracer) uses it — and it cannot express "home
+  [Tracer](https://github.com/trailcurrentoss/TrailCurrentTracer) uses it — and it cannot express "home
   screen plus switchable apps".
 
 ## touchd

@@ -1,0 +1,55 @@
+# Rotary HID — local/generated state.
+#
+# Tracked: the .eez-project, the hand-written C in main/ and components/, and
+# the build configuration. Not tracked: anything a build
+# downloads or emits.
+
+# AI agent configuration (local only — never commit)
+.claude
+.claude/
+.claude.md
+CLAUDE.md
+CLAUDE.MD
+.cursorrules
+.cursor/
+.github/copilot*
+.aider*
+.continue/
+.codeium/
+.tabnine*
+.sourcery.yaml
+
+# --- ESP-IDF ---------------------------------------------------------------
+build/
+dist/
+sdkconfig
+sdkconfig.old
+dependencies.lock
+managed_components/
+
+# --- EEZ Studio ------------------------------------------------------------
+*.eez-project-ui-state
+*.eez-project.bak
+*.eez-project.bak[0-9]
+*.eez-project.bak.*
+*.eez-project-fonts-cache
+.docker-build-output/
+.emscripten-cache/
+main/ui/.eez-project-build
+
+# NOTE: main/ui/ is EEZ Studio's export and holds ONLY generated files, so it
+# can be deleted and re-exported at any time. It is committed anyway, so a
+# clone builds the real UI without opening EEZ Studio first.
+
+# --- Local working state ---------------------------------------------------
+tmp/
+**/tmp/
+__pycache__/
+*.py[cod]
+
+# --- Editors / OS ----------------------------------------------------------
+.vscode/
+.idea/
+*.swp
+.DS_Store
+*.log

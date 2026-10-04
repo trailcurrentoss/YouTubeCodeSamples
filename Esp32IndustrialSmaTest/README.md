@@ -141,8 +141,8 @@ them across the two runs and averages the per-AP differences:
 
 ```
   --- paired per-BSSID census (same AP measured in both runs) ---
-    a4:2b:b0:1c:44:e1   -33 ->  -35 dBm  -2
-    e8:9f:80:2a:11:03   -58 ->  -61 dBm  -3
+    00:00:5e:00:53:01   -33 ->  -35 dBm  -2
+    00:00:5e:00:53:02   -58 ->  -61 dBm  -3
     ...
     11 AP(s) matched, mean paired delta -2.64 dB
 ```

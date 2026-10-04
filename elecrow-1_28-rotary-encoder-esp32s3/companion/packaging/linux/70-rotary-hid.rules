@@ -1,0 +1,10 @@
+# Rotary Macro Pad -- let the user at the seat open the pad's serial port.
+#
+# TAG+="uaccess" grants the logged-in desktop user access to the device, so
+# the companion works without joining the `dialout` group (and without the
+# log-out/log-in that joining a group needs). The file must sort before
+# 73-seat-late.rules, which is where uaccess is applied.
+#
+# Matched on the product string as well as the IDs: 303a:4005 is TinyUSB's
+# generic CDC+HID default and other TinyUSB gadgets may use it too.
+SUBSYSTEM=="tty", ATTRS{idVendor}=="303a", ATTRS{idProduct}=="4005", ATTRS{product}=="Rotary HID", TAG+="uaccess", SYMLINK+="rotary-hid"

@@ -1,0 +1,96 @@
+menu "CrowPanel 1.46in board"
+
+comment "Display"
+
+config CROWPANEL_LCD_BGR
+    bool "Panel expects BGR element order"
+    default n
+    help
+      Swaps red and blue. n (RGB) is VERIFIED on hardware (TrailCurrent
+      Capstan), against a deliberate red/green/blue test pattern rather than
+      a screen of UI chrome, which will not show a red/blue swap.
+
+      This is the OPPOSITE of the 1.28in board, which needs y. They are
+      different controllers driving differently-bonded glass; do not copy
+      one board's value to the other.
+
+      Do not derive this from the vendor's LovyanGFX `cfg.rgb_order`
+      either (true on this board). It does not map onto esp_lcd's element
+      order the way the name suggests -- on both CrowPanels it is the exact
+      inverse of what the panel needs.
+
+config CROWPANEL_LCD_MIRROR_X
+    bool "Mirror the display horizontally"
+    default n
+    help
+      n is what the TrailCurrent Capstan firmware runs on this board. The
+      1.28in needs y; this panel does not. If text reads backwards --
+      mirrored rather than upside down -- flip this.
+
+      This flips the DISPLAY only. The touch layer has its own options
+      below, and the two are independent.
+
+config CROWPANEL_LCD_MIRROR_Y
+    bool "Mirror the display vertically"
+    default n
+    help
+      With MIRROR_X this gives a 180-degree rotation, for a panel mounted
+      upside down. Mirror the touch to match.
+
+comment "Touch"
+
+config CROWPANEL_TOUCH_MIRROR_X
+    bool "Mirror touch horizontally"
+    default n
+    help
+      Independent of the display transform. The touch controller is a
+      separate device whose axes are fixed by how ITS layer is bonded, so
+      work this out on the glass rather than copying the display setting.
+
+      NOT YET VERIFIED on this board: Capstan, where the rest of this board
+      layer comes from, keeps touch off. If a tap on the left lands on the
+      right, set this.
+
+config CROWPANEL_TOUCH_MIRROR_Y
+    bool "Mirror touch vertically"
+    default n
+    help
+      NOT YET VERIFIED on this board -- see CROWPANEL_TOUCH_MIRROR_X.
+
+config CROWPANEL_TOUCH_SWAP_XY
+    bool "Swap touch X and Y axes"
+    default n
+
+comment "Rotary ring"
+
+config CROWPANEL_ENCODER_STEPS_PER_DETENT
+    int "Quadrature counts per detent"
+    range 1 8
+    default 2
+    help
+      Counts the 4x quadrature decoder produces per mechanical detent.
+      VERIFIED on hardware: 2. At 4 it takes two detents to move once.
+
+      The 1.28in is 4 -- the two boards are pin-identical but do NOT share
+      an encoder, and neither value may be derived from the other. Enable
+      CROWPANEL_ENCODER_DEBUG and turn one detent to measure a different
+      unit.
+
+config CROWPANEL_ENCODER_INVERT
+    bool "Invert rotation direction"
+    default n
+    help
+      Clockwise must increase. NOT YET VERIFIED on this board: n matches
+      the 1.28in, and Capstan records the 1.46in as unconfirmed. If
+      clockwise moves the selection backwards on your unit, set this.
+
+config CROWPANEL_ENCODER_DEBUG
+    bool "Log raw encoder counts"
+    default n
+
+config CROWPANEL_LONG_PRESS_MS
+    int "Ring long-press duration (ms)"
+    range 300 3000
+    default 700
+
+endmenu
