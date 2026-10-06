@@ -60,9 +60,21 @@
 #define BOARD_ENC_BTN           41   /* Active low. */
 
 /*
+ * WS2812 LED ring, 5 LEDs, GRB. Same vendor source as above. No supply
+ * enable on this board (the 1.46" gates its ring on GPIO17); the ring is
+ * live as soon as the board is powered.
+ */
+#define BOARD_WS2812_GPIO       48
+#define BOARD_WS2812_COUNT      5
+/* Which half of the ring each LED is on, seen from the front, in chain
+ * order: -1 left, +1 right, 0 neither. Mapped on hardware in TrailCurrent
+ * Capstan by lighting each index its own colour: 0 at 4 o'clock, 1 at 1,
+ * 2 at 11, 3 just shy of 9, 4 at 6. The one at 6 is the bottom centre and
+ * belongs to neither side. */
+#define BOARD_WS2812_SIDE       { +1, +1, -1, -1, 0 }
+
+/*
  * Not driven by this firmware:
- *   GPIO48  WS2812 ring, 5 LEDs (the MaTouch has none, and this pad does
- *           not need one)
  *   GPIO40  power LED, active low
  * GPIO43/44 (UART0) are free on this board and carry the ESP console -- see
  * sdkconfig.defaults.

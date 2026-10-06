@@ -14,7 +14,8 @@ the Makerfabs MaTouch 2.1" in `../makerfab-2_1-rotary-encoder-esp32s3`.
 | Touch | CST816D/T capacitive (CST816S register map, I²C `0x15`), interrupt-driven |
 | Input | Rotary ring with a push switch — the whole panel is the button |
 | USB | One USB-C on the ESP32-S3's native USB (no UART bridge) |
-| Also fitted | 8 × WS2812 around the ring (GPIO48, power enable GPIO17), a power LED (GPIO40), a battery connector with charge sensing — not used by this firmware |
+| LED ring | 8 × WS2812 around the ring (GPIO48, power enable GPIO17). Rests green; while the ring turns, the half on the side it turns towards goes white |
+| Also fitted | A power LED (GPIO40), a battery connector with charge sensing — not used by this firmware |
 
 Vendor sources: the Elecrow GitHub repository
 `CrowPanel-1.46inch-HMI-ESP32-Rotary-Display`

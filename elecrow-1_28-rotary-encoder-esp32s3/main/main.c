@@ -110,6 +110,10 @@ void app_main(void)
 
     ESP_ERROR_CHECK(crowpanel_board_init());
 
+    /* Resting colour for the LED ring. Turning the ring whitens the side it
+     * turns towards, then falls back to this (board_leds.c). */
+    crowpanel_board_leds_set_all(0, 255, 0);
+
     if (crowpanel_board_lock(0)) {
 #if APP_HAVE_UI
         ui_init();

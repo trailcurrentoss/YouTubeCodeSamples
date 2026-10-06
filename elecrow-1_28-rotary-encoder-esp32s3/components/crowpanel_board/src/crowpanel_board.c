@@ -63,6 +63,11 @@ void crowpanel_board_unlock(void)
 
 esp_err_t crowpanel_board_init(void)
 {
+    /* Not fatal: a pad whose LED ring fails to start still works. */
+    if (board_leds_init() != ESP_OK) {
+        ESP_LOGW(TAG, "LED ring init failed -- continuing without it");
+    }
+
     ESP_RETURN_ON_ERROR(backlight_init(), TAG, "backlight init failed");
 
     /* LVGL task pinned to core 1, away from the Wi-Fi / USB stacks on core 0. */

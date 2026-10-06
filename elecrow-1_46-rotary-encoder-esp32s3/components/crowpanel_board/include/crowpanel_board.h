@@ -3,7 +3,7 @@
  *
  * The only hardware-aware code in the firmware: the JD9855 SPI panel, the
  * CST816D/T capacitive touch controller, the rotary ring and its push button,
- * and LVGL on top of them via esp_lvgl_port.
+ * the WS2812 LED ring, and LVGL on top of them via esp_lvgl_port.
  *
  * Ported from the TrailCurrent Capstan board layer, trimmed to this one
  * board. Unlike Capstan, TOUCH IS ON: the touch indev is live from boot.
@@ -49,6 +49,16 @@ void crowpanel_board_unlock(void);
 
 /** Backlight, 0-100 percent (LEDC PWM). */
 esp_err_t crowpanel_board_backlight_set(uint8_t percent);
+
+/**
+ * Set every LED in the ring to one colour (0-255 per channel, scaled by
+ * CONFIG_CROWPANEL_LEDS_MAX_BRIGHTNESS). Repeating the current colour costs
+ * nothing -- it is not re-sent. Safe from any task.
+ *
+ * This is the ring's resting colour. While the ring turns, the half on the
+ * side it is turning towards shows white on top of it, then returns to this.
+ */
+void crowpanel_board_leds_set_all(uint8_t r, uint8_t g, uint8_t b);
 
 /** The touch indev (LV_INDEV_TYPE_POINTER). NULL if touch failed to start. */
 lv_indev_t *crowpanel_board_touch_indev(void);

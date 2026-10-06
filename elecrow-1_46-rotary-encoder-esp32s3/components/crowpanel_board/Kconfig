@@ -93,4 +93,15 @@ config CROWPANEL_LONG_PRESS_MS
     range 300 3000
     default 700
 
+comment "LED ring"
+
+config CROWPANEL_LEDS_MAX_BRIGHTNESS
+    int "Maximum LED ring brightness (percent)"
+    range 1 100
+    default 100
+    help
+      Ceiling applied to every LED write. 100 is full scale, the brightest
+      the WS2812s go. Lower it if the ring is too bright in a dark room
+      (TrailCurrent Capstan runs this board at 40 on a wall).
+
 endmenu

@@ -85,7 +85,7 @@ GUI/RotaryHid.eez-project   the screens, authored in EEZ Studio (source of truth
 GUI/ASSETS/                 fonts and logos the project embeds
 main/                       firmware: behaviour, UI glue, actions, variables
 main/ui/                    EEZ Studio's export — generated, safe to delete and re-export
-components/crowpanel_board/ panel (JD9855 driver), touch, ring (CrowPanel 1.46" only)
+components/crowpanel_board/ panel (JD9855 driver), touch, ring, LEDs (CrowPanel 1.46" only)
 components/rotary_usb/      USB keyboard + serial link to the companion
 companion/                  the Linux companion and its .deb packaging
 freecad/                    FreeCAD add-on for view rotation, and its installer

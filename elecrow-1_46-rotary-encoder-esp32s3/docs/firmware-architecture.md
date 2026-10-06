@@ -1,7 +1,7 @@
 # Firmware architecture
 
 ```
-components/crowpanel_board/ hardware: panel, touch, ring, backlight, LVGL setup
+components/crowpanel_board/ hardware: panel, touch, ring, LED ring, backlight, LVGL setup
 components/rotary_usb/      USB: HID keyboard + serial (companion protocol, log)
 main/app_model.c            behaviour: focused app, axis, tallies, input -> keystrokes
 main/clock.c                time of day for the idle clock (companion sync + esp_timer)

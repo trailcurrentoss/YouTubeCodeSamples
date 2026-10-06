@@ -13,7 +13,8 @@ this pad lives next door in `../makerfab-2_1-rotary-encoder-esp32s3`.
 | Touch | CST816D capacitive (CST816S register map, I²C `0x15`), interrupt-driven |
 | Input | Rotary ring (EC3501, 30 detents) with a push switch — the whole panel is the button |
 | USB | One USB-C on the ESP32-S3's native USB (no UART bridge) |
-| Also fitted | 5 × WS2812 around the ring (GPIO48) and a power LED (GPIO40) — not used by this firmware |
+| LED ring | 5 × WS2812 around the ring (GPIO48, no power enable). Rests green; while the ring turns, the half on the side it turns towards goes white |
+| Also fitted | A power LED (GPIO40) — not used by this firmware |
 
 Vendor sources: the Elecrow GitHub repository
 `CrowPanel-1.28inch-HMI-ESP32-Rotary-Display-240-240-IPS-Round-Touch-Knob-Screen`

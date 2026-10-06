@@ -70,9 +70,21 @@
 #define BOARD_ENC_BTN           41   /* Active low. */
 
 /*
+ * WS2812 LED ring, 8 LEDs, GRB. Same vendor source as above (LED_PIN,
+ * LED_NUM, and `digitalWrite(17, HIGH)` in setup()).
+ */
+#define BOARD_WS2812_GPIO       48
+#define BOARD_WS2812_COUNT      8
+#define BOARD_WS2812_EN         17   /* Ring supply; dark unless driven high. */
+/* Which half of the ring each LED is on, seen from the front, in chain
+ * order: -1 left, +1 right, 0 neither. Mapped on hardware in TrailCurrent
+ * Capstan by lighting each index its own colour: 0 at 2 o'clock, 1 at 4,
+ * 2 at 5, 3 at 7, 4 at 8, 5 at 10, 6 at 11, 7 at 1. The pair at 5 and 7 are
+ * the bottom centre and belong to neither side. */
+#define BOARD_WS2812_SIDE       { +1, +1, 0, 0, -1, -1, -1, +1 }
+
+/*
  * Not driven by this firmware:
- *   GPIO48  WS2812 ring, 8 LEDs
- *   GPIO17  WS2812 ring power enable -- left undriven, so the ring stays dark
  *   GPIO40  power LED, active low
  *   GPIO18  battery sense (ADC2_CH7, through a 1K/1K divider)
  *   GPIO15  charge status, active low

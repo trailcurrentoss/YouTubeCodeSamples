@@ -160,6 +160,7 @@ static void encoder_read_cb(lv_indev_t *indev, lv_indev_data_t *data)
                 data->enc_diff = (int16_t)detents;
             }
             board_note_input();
+            board_leds_turn(detents);
         }
     }
 
