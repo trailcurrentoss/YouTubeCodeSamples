@@ -1,0 +1,54 @@
+# Crack the Safe -- build configuration.
+#
+# NEVER edit `sdkconfig` directly: it is generated and gitignored, so an edit
+# there is invisible to review. Everything goes here, and this file only SEEDS
+# a new `sdkconfig` -- ESP-IDF does not re-apply it to an existing one. After
+# changing anything below:
+#
+#     rm sdkconfig && idf.py build
+#
+# then confirm the key landed with `grep CONFIG_THE_KEY sdkconfig`.
+
+CONFIG_IDF_TARGET="esp32s3"
+
+# ---------------------------------------------------------------------------
+# Memory: ESP32-S3R8 -- 8 MB OCTAL PSRAM in the package -- and 16 MB external
+# flash. DIO, not QIO: it is what the factory image and Waveshare's demos boot
+# with.
+# ---------------------------------------------------------------------------
+CONFIG_ESPTOOLPY_FLASHSIZE_16MB=y
+CONFIG_ESPTOOLPY_FLASHMODE_DIO=y
+CONFIG_ESPTOOLPY_FLASHFREQ_80M=y
+
+CONFIG_SPIRAM=y
+CONFIG_SPIRAM_MODE_OCT=y
+CONFIG_SPIRAM_SPEED_80M=y
+CONFIG_SPIRAM_USE_MALLOC=y
+CONFIG_SPIRAM_MALLOC_ALWAYSINTERNAL=16384
+
+CONFIG_ESP_DEFAULT_CPU_FREQ_MHZ_240=y
+
+CONFIG_PARTITION_TABLE_CUSTOM=y
+CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="partitions.csv"
+
+# The S3's own USB-Serial/JTAG is what the USB-C port reaches in the S3
+# orientation; the CH340 on the other orientation belongs to the ESP32.
+CONFIG_ESP_CONSOLE_USB_SERIAL_JTAG=y
+
+# 1 kHz tick: LVGL animation and the 3 ms knob poll both want it.
+CONFIG_FREERTOS_HZ=1000
+
+# ---------------------------------------------------------------------------
+# LVGL 9. Every MONTSERRAT_<n> the .eez-project references must be enabled
+# here. The game's type is custom Roboto fonts embedded in the project and
+# exported as ui_font_*; Montserrat is only the placeholder screen's.
+# ---------------------------------------------------------------------------
+CONFIG_LV_COLOR_DEPTH_16=y
+CONFIG_LV_FONT_MONTSERRAT_14=y
+
+# lv_malloc() from the ESP heap rather than LVGL's fixed 64 KB pool. EEZ's
+# export builds every screen at boot, and LVGL's out-of-memory handler is an
+# infinite loop that presents as a watchdog reset.
+CONFIG_LV_USE_CLIB_MALLOC=y
+CONFIG_LV_USE_CLIB_STRING=y
+CONFIG_LV_USE_CLIB_SPRINTF=y

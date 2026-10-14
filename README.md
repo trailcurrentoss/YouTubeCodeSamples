@@ -23,6 +23,7 @@ adapted, not dropped into a product unchanged.
 | [Rotary Macro Pad, 2.1"](makerfab-2_1-rotary-encoder-esp32s3/README.md) | Makerfabs MaTouch ESP32-S3 Rotary 2.1" | A USB keyboard with a round touchscreen in a rotary ring. Its keys change to suit the app you're using: FreeCAD, Blender, Kdenlive, VS Code, GIMP, Inkscape, LibreOffice and browsers. |
 | [Rotary Macro Pad, 1.28"](elecrow-1_28-rotary-encoder-esp32s3/README.md) | Elecrow CrowPanel 1.28" Rotary (ESP32-S3) | The same macro pad, redrawn for a 240×240 screen. |
 | [Rotary Macro Pad, 1.46"](elecrow-1_46-rotary-encoder-esp32s3/README.md) | Elecrow CrowPanel 1.46" Rotary (ESP32-S3) | The same macro pad, redrawn for a 360×360 screen. |
+| [Crack the Safe](crack_the_safe_waveshare_rotary_encoder_game/README.md) | Waveshare ESP32-S3-Knob-Touch-LCD-1.8 | A safe-cracking game you play by feel: the haptic motor clicks when the knob lands on each number, and the vault door swings open on glowing gold. *In development.* |
 | **ESP32 boards** | | |
 | [ESP32-P4-WIFI6 Demo](Esp32P4Demo/README.md) | Waveshare ESP32-P4-WIFI6 | Wi-Fi setup from a phone, a web dashboard, microSD file management, microphone and speaker, a camera, and push-to-talk to the Peregrine voice assistant. |
 | [Antenna A/B Test](Esp32IndustrialSmaTest/README.md) | Waveshare ESP32-S3-RS485-CAN | Measures the onboard ceramic antenna against an external SMA antenna and reports the difference in dB. |

@@ -1,0 +1,28 @@
+# AI agent configuration (local only — never commit)
+.claude
+.claude/
+.claude.md
+CLAUDE.md
+CLAUDE.MD
+.cursorrules
+.cursor/
+.github/copilot*
+.aider*
+.continue/
+.codeium/
+.tabnine*
+.sourcery.yaml
+
+# FreeCAD automatic backups
+*.FCBak
+*.FCStd[0-9]
+*.FCStd[0-9][0-9]
+
+# Python bytecode from running the generator
+__pycache__/
+
+# FEM study output written by fem_splay_study.py (the tracked results are fem_splay_results.csv)
+fem_splay.csv
+
+# G-code is posted from the CAM jobs and depends on your machine settings (surf_var etc.)
+cam/*.nc

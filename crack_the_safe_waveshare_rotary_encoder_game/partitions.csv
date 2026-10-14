@@ -1,0 +1,10 @@
+# Crack the Safe partition table -- 16 MB flash.
+#
+# One large factory app: the unlock animation's door frames and the gold-bar
+# interior are compiled in as LVGL images, and together with LVGL 9 and the
+# embedded fonts they outgrow a 4 MB slot. No OTA -- this is flashed over USB.
+#
+# Name,     Type, SubType,  Offset,   Size,   Flags
+nvs,        data, nvs,      0x9000,   0x6000,
+phy_init,   data, phy,      0xf000,   0x1000,
+factory,    app,  factory,  0x10000,  8M,

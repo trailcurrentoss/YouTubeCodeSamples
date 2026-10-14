@@ -1,0 +1,45 @@
+menu "Knob board"
+
+    config KNOB_BOARD_INVERT
+        bool "Invert knob direction"
+        default n
+        help
+            Swap clockwise and anticlockwise. The knob's A contact is wired as
+            clockwise on the Waveshare 1.8" module; set this only if a unit
+            turns the wrong way.
+
+    choice KNOB_BOARD_HAPTIC_MOTOR
+        prompt "Haptic motor type"
+        default KNOB_BOARD_HAPTIC_MOTOR_LRA
+        help
+            What the DRV2605L's OUT+/OUT- drive. The schematic labels them
+            LRA_P / LRA_N, and on the board the motor only moves when driven
+            as an LRA: in ERM mode (what Waveshare's demo selects) it gets a
+            near-DC drive and barely stirs.
+
+        config KNOB_BOARD_HAPTIC_MOTOR_LRA
+            bool "LRA (linear resonant actuator) -- this board"
+        config KNOB_BOARD_HAPTIC_MOTOR_ERM
+            bool "ERM (eccentric rotating mass)"
+    endchoice
+
+    config KNOB_BOARD_HAPTIC_ROM_LIBRARY
+        int "DRV2605 waveform library"
+        range 1 7
+        default 6 if KNOB_BOARD_HAPTIC_MOTOR_LRA
+        default 5
+        help
+            6 is the LRA library; 1-5 are ERM libraries, 7 the 4.5 V ERM one.
+
+    config KNOB_BOARD_HAPTIC_LRA_PERIOD
+        int "LRA open-loop drive period (OL_LRA_PERIOD)"
+        range 1 127
+        default 51
+        depends on KNOB_BOARD_HAPTIC_MOTOR_LRA
+        help
+            Open loop drives the LRA at 1 / (period x 98.46 us). 51 is the
+            DRV2605L's reset value, about 199 Hz, inside the 170-235 Hz band
+            small coin LRAs resonate in. Nudge it if the buzz feels weak:
+            lower is a higher frequency.
+
+endmenu

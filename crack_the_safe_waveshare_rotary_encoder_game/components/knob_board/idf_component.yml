@@ -1,0 +1,19 @@
+dependencies:
+  idf: ">=5.4"
+  # Must match lvglVersion in GUI/CrackTheSafe.eez-project EXACTLY, and moves
+  # only together with esp_lvgl_port below -- EEZ Studio emits different LVGL
+  # calls per version, so a mismatch fails inside generated code.
+  lvgl/lvgl:
+    version: "~9.2.2"
+    public: true
+  espressif/esp_lvgl_port:
+    version: "~2.4"
+    public: true
+  espressif/esp_lcd_st77916: "~2.0.2"
+  # The touch driver is pinned to the esp_lcd_touch 1.1 series to stay in step
+  # with esp_lvgl_port ~2.4: esp_lcd_touch 1.2 deprecates
+  # esp_lcd_touch_get_coordinates(), which esp_lvgl_port 2.4 still calls, so
+  # every build warns. cst816s 1.1.0 is the last release that accepts 1.1.
+  # Bump these together with esp_lvgl_port, never alone.
+  espressif/esp_lcd_touch: "~1.1.2"
+  espressif/esp_lcd_touch_cst816s: "1.1.0"
