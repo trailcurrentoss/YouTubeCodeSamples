@@ -1900,6 +1900,68 @@ void remove_style_level_text(lv_obj_t *obj) {
 };
 
 //
+// Style: BatteryIcon
+//
+
+void init_style_battery_icon_MAIN_DEFAULT(lv_style_t *style) {
+    lv_style_set_text_color(style, lv_color_hex(theme_colors[active_theme_index][9]));
+    lv_style_set_text_font(style, &ui_font_fa14);
+    lv_style_set_text_letter_space(style, 3);
+};
+
+lv_style_t *get_style_battery_icon_MAIN_DEFAULT() {
+    static lv_style_t *style;
+    if (!style) {
+        style = (lv_style_t *)lv_malloc(sizeof(lv_style_t));
+        lv_style_init(style);
+        init_style_battery_icon_MAIN_DEFAULT(style);
+    }
+    return style;
+};
+
+void init_style_battery_icon_MAIN_CHECKED(lv_style_t *style) {
+    lv_style_set_text_color(style, lv_color_hex(theme_colors[active_theme_index][12]));
+};
+
+lv_style_t *get_style_battery_icon_MAIN_CHECKED() {
+    static lv_style_t *style;
+    if (!style) {
+        style = (lv_style_t *)lv_malloc(sizeof(lv_style_t));
+        lv_style_init(style);
+        init_style_battery_icon_MAIN_CHECKED(style);
+    }
+    return style;
+};
+
+void init_style_battery_icon_MAIN_DISABLED(lv_style_t *style) {
+    lv_style_set_text_color(style, lv_color_hex(theme_colors[active_theme_index][15]));
+};
+
+lv_style_t *get_style_battery_icon_MAIN_DISABLED() {
+    static lv_style_t *style;
+    if (!style) {
+        style = (lv_style_t *)lv_malloc(sizeof(lv_style_t));
+        lv_style_init(style);
+        init_style_battery_icon_MAIN_DISABLED(style);
+    }
+    return style;
+};
+
+void add_style_battery_icon(lv_obj_t *obj) {
+    (void)obj;
+    lv_obj_add_style(obj, get_style_battery_icon_MAIN_DEFAULT(), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_add_style(obj, get_style_battery_icon_MAIN_CHECKED(), LV_PART_MAIN | LV_STATE_CHECKED);
+    lv_obj_add_style(obj, get_style_battery_icon_MAIN_DISABLED(), LV_PART_MAIN | LV_STATE_DISABLED);
+};
+
+void remove_style_battery_icon(lv_obj_t *obj) {
+    (void)obj;
+    lv_obj_remove_style(obj, get_style_battery_icon_MAIN_DEFAULT(), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_remove_style(obj, get_style_battery_icon_MAIN_CHECKED(), LV_PART_MAIN | LV_STATE_CHECKED);
+    lv_obj_remove_style(obj, get_style_battery_icon_MAIN_DISABLED(), LV_PART_MAIN | LV_STATE_DISABLED);
+};
+
+//
 // Style: HintText
 //
 
@@ -2416,6 +2478,7 @@ void add_style(lv_obj_t *obj, int32_t styleIndex) {
         add_style_dial_index,
         add_style_timer_text,
         add_style_level_text,
+        add_style_battery_icon,
         add_style_hint_text,
         add_style_hint_icon,
         add_style_slot_text,
@@ -2474,6 +2537,7 @@ void remove_style(lv_obj_t *obj, int32_t styleIndex) {
         remove_style_dial_index,
         remove_style_timer_text,
         remove_style_level_text,
+        remove_style_battery_icon,
         remove_style_hint_text,
         remove_style_hint_icon,
         remove_style_slot_text,

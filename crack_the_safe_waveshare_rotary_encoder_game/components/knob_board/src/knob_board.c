@@ -101,6 +101,11 @@ esp_err_t knob_board_init(void)
         ESP_LOGE(TAG, "audio did not start -- silent");
     }
 
+    /* Nor is the battery gauge: the UI just leaves the icon off. */
+    if (board_battery_init() != ESP_OK) {
+        ESP_LOGE(TAG, "battery sense did not start -- no battery icon");
+    }
+
     ESP_LOGI(TAG, "Waveshare ESP32-S3 Knob 1.8\" %ux%u, touch %s, haptics %s",
              KNOB_BOARD_H_RES, KNOB_BOARD_V_RES, s_touch ? "on" : "FAILED",
              s_haptics ? "on" : "absent");

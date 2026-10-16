@@ -5013,6 +5013,58 @@
               "recolor": false
             },
             {
+              "objID": "9417a199-3fdf-9ba6-d0bc-1fdbd6946e3b",
+              "type": "LVGLLabelWidget",
+              "left": 160,
+              "top": 96,
+              "width": 40,
+              "height": 0,
+              "leftUnit": "px",
+              "topUnit": "px",
+              "widthUnit": "px",
+              "heightUnit": "content",
+              "customInputs": [],
+              "customOutputs": [],
+              "style": {
+                "objID": "b39af54a-8625-ae11-e0d6-ff81a355ecee",
+                "useStyle": "default",
+                "conditionalStyles": [],
+                "childStyles": []
+              },
+              "timeline": [],
+              "eventHandlers": [],
+              "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLLABLE|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_WITH_ARROW|SNAPPABLE",
+              "hiddenFlagType": "literal",
+              "clickableFlagType": "literal",
+              "checkedStateType": "literal",
+              "disabledStateType": "literal",
+              "states": "",
+              "clickableFlag": false,
+              "scrollSnapX": "",
+              "scrollSnapY": "",
+              "useStyle": "BatteryIcon",
+              "localStyles": {
+                "objID": "99210128-ced6-d138-0fd5-5be1b13a1252",
+                "definition": {
+                  "MAIN": {
+                    "DEFAULT": {
+                      "text_align": "CENTER"
+                    }
+                  }
+                }
+              },
+              "flagScrollDirection": "",
+              "flagScrollbarMode": "",
+              "group": "",
+              "groupIndex": 0,
+              "children": [],
+              "identifier": "battery_icon",
+              "text": "\uf240",
+              "textType": "literal",
+              "longMode": "CLIP",
+              "recolor": false
+            },
+            {
               "objID": "e0fe77e5-23af-9cb8-1ec6-150d810f3e8b",
               "type": "LVGLLabelWidget",
               "left": 100,
@@ -8140,6 +8192,30 @@
                 "text_color": "GreenLight",
                 "text_font": "rm14",
                 "text_letter_space": 1
+              }
+            }
+          }
+        }
+      },
+      {
+        "objID": "578c03e9-8e45-74de-9c80-8fecac3ddb5b",
+        "name": "BatteryIcon",
+        "forWidgetType": "LVGLLabelWidget",
+        "childStyles": [],
+        "definition": {
+          "objID": "43809caa-f3ac-8cf2-bfc8-fa1036074ecc",
+          "definition": {
+            "MAIN": {
+              "DEFAULT": {
+                "text_color": "TextSoft",
+                "text_font": "fa14",
+                "text_letter_space": 3
+              },
+              "CHECKED": {
+                "text_color": "GreenLight"
+              },
+              "DISABLED": {
+                "text_color": "Red"
               }
             }
           }

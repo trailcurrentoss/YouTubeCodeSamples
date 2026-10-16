@@ -17,6 +17,7 @@
 
 #include "app.h"
 #include "bt_link.h"
+#include "knob_board.h"
 #include "screens.h"
 #include "sound.h"
 #include "ui_lv.h"
@@ -28,6 +29,67 @@ static const lv_state_t CURRENT = LV_STATE_PRESSED;
 /* ---- Play ------------------------------------------------------------------ */
 
 #define POLICE_SWAP_MS 350
+
+/* The battery, above "Level N": how full, as Font Awesome's five battery
+ * glyphs, red when low (BatteryIcon DISABLED). On USB power a bolt sits in
+ * front, green (CHECKED), and the bars fill up over and over -- the board
+ * cannot see the cell while it charges, so there is no level to show. */
+#define BATT_LOW_PCT     15
+#define BATT_HYST_PCT    4      /* a reading must clear an edge by this to go up */
+#define BATT_FILL_STEP_MS 600
+
+/* UTF-8 for U+F244 (empty) .. U+F240 (full), and U+F0E7, the bolt -- all in
+ * the fa14 range. */
+static const char *const BATT_GLYPH[5] = {
+    "\xEF\x89\x84", "\xEF\x89\x83", "\xEF\x89\x82", "\xEF\x89\x81", "\xEF\x89\x80",
+};
+#define BOLT_GLYPH "\xEF\x83\xA7"
+
+/* Bars 0..4 from the level. The voltage climbs back a little whenever the
+ * motor or backlight eases off, so going UP a bar, or out of low, needs a
+ * margin -- or the icon would flick between two bars all game. */
+static int battery_bars(int pct, bool *low)
+{
+    static const uint8_t EDGE[4] = { 10, 30, 55, 80 };   /* bars 1..4 from here */
+    static int  s_bars = -1;
+    static bool s_low;
+
+    int bars = 0;
+    while (bars < 4 && pct >= EDGE[bars]) {
+        bars++;
+    }
+    if (s_bars >= 0 && bars == s_bars + 1 && pct < EDGE[s_bars] + BATT_HYST_PCT) {
+        bars = s_bars;
+    }
+    s_bars = bars;
+
+    s_low = s_low ? pct < BATT_LOW_PCT + BATT_HYST_PCT : pct <= BATT_LOW_PCT;
+    *low = s_low;
+    return bars;
+}
+
+static void refresh_battery(void)
+{
+    knob_board_battery_t b;
+    const bool known = knob_board_battery_get(&b);
+    ui_lv_set_hidden(objects.battery_icon, !known);
+    if (!known) {
+        return;
+    }
+
+    char buf[8];
+    if (b.charging) {
+        const int bars = (int)((app_now_ms() / BATT_FILL_STEP_MS) % 5);
+        snprintf(buf, sizeof(buf), BOLT_GLYPH "%s", BATT_GLYPH[bars]);
+        ui_lv_set_text(objects.battery_icon, buf);
+        ui_lv_set_state_in(objects.battery_icon, DONE | WRONG, DONE);
+        return;
+    }
+    bool low;
+    const int bars = battery_bars(b.percent, &low);
+    ui_lv_set_text(objects.battery_icon, BATT_GLYPH[bars]);
+    ui_lv_set_state_in(objects.battery_icon, DONE | WRONG, low ? WRONG : 0);
+}
 
 /* Turn the numbered ring and the knob's grip ring with the knob. A Scale's
  * rotation is where its first tick (0) sits; 270 = 12 o'clock, and each
@@ -65,6 +127,7 @@ static void refresh_play(void)
 
     snprintf(buf, sizeof(buf), "Level %u", g_game.level ? g_game.level : 1);
     ui_lv_set_text(objects.level_text, buf);
+    refresh_battery();
     ui_lv_set_text(objects.hint_text,
                    wrong ? (g_game.timed_out ? "Time's Up" : "Wrong")
                          : dir > 0 ? "Turn Right" : "Turn Left");

@@ -86,6 +86,15 @@
 #define BOARD_COPROC_RX       GPIO_NUM_48
 #define BOARD_COPROC_BAUD     921600   /* fast enough to stream audio (bt_link.c) */
 
+/* ---- Battery sense (Sch p.2/p.4, Demo 01) ------------------------------
+ *
+ * BATT_ADC is the midpoint of R62/R63, 10k/10k, on the "5V" net: the USB
+ * supply when plugged in, the cell otherwise. The charger has no status line
+ * to the S3; see board_battery.c. */
+#define BOARD_BATT_ADC        GPIO_NUM_1
+#define BOARD_BATT_ADC_CHANNEL ADC_CHANNEL_0   /* GPIO1 on ADC1 */
+#define BOARD_BATT_DIVIDER    2
+
 /* MSM261D4030H1CPM PDM microphone, L/R tied to GND (left slot). PDM RX only
  * exists on I2S0. */
 #define BOARD_PDM_CLK         GPIO_NUM_45

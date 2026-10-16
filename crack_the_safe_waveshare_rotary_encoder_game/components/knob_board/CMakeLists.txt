@@ -7,6 +7,7 @@ idf_component_register(
         "src/board_haptic.c"
         "src/board_audio.c"
         "src/board_coproc.c"
+        "src/board_battery.c"
     INCLUDE_DIRS "include"
     PRIV_INCLUDE_DIRS "src"
     REQUIRES
@@ -14,6 +15,7 @@ idf_component_register(
         esp_lcd
         lvgl__lvgl
     PRIV_REQUIRES
+        esp_adc
         esp_driver_gpio
         esp_driver_i2s
         esp_driver_ledc

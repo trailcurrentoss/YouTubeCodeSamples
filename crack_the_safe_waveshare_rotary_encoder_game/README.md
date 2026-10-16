@@ -62,6 +62,10 @@ numbers.
   (3 to start with). Touch **-** or **+**, or turn the knob while Settings is open; each step
   plays a click at the new level. It applies to the 3.5 mm jack and to Bluetooth headphones,
   and the board remembers it when switched off.
+- The battery icon above **Level** shows how much charge is left, and turns red when it is
+  low (15% or less). With USB plugged in a green bolt appears and the bars fill up over
+  and over. The board cannot see the battery while it is on the charger, so it shows the
+  same thing whether the battery is still charging or already full.
 - Turn the knob or tap the title screen to see how to play, then touch **Start** to begin.
   The knob does nothing on the instructions screen. After the vault opens, wait for
   **Turn to Play Again** before starting the next round.
@@ -208,6 +212,7 @@ every pin, each cited to Waveshare's demo code or the schematic.
 | Knob | Alps bidirectional detector switch, *not* quadrature: A on 8 (clockwise), B on 7 |
 | PCM5100A DAC | I2S1: BCK 39, WS 40, DOUT 41; GPIO0 routes the DAC to the S3. Line-level out of the 3.5 mm jack -- **no amplifier, no speaker**. Soft mute is on the co-processor's IO32 |
 | ESP32-U4WDH co-processor | UART1: TX 38, RX 48, 921600 baud. Classic Bluetooth for headphones (`coprocessor/`) |
+| Battery sense | ADC1 channel 0 on GPIO1, half the supply rail (10k/10k). No charger status line, so USB power is read as "charging" (above 4.45 V) and the level is read off the cell voltage on battery |
 
 The knob's direction, the motor type, the DRV2605's waveform library and the
 LRA drive frequency can be changed in `idf.py menuconfig` → **Knob board**.
@@ -221,7 +226,7 @@ GUI/CrackTheSafe.eez-project   the screens (source of truth)
 GUI/ASSETS/                    fonts, and the vault art the project embeds
 main/                          the game and the glue to the UI
 main/ui/                       EEZ Studio's export -- disposable
-components/knob_board/         display, touch, knob, haptics, LVGL, co-processor UART
+components/knob_board/         display, touch, knob, haptics, battery, LVGL, co-processor UART
 coprocessor/                   ESP32 co-processor firmware: Bluetooth headphones
 docs/flashing.md               flashing both chips, step by step
 ```

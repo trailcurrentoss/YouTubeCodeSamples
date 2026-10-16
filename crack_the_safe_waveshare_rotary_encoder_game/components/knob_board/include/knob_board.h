@@ -127,6 +127,22 @@ typedef void (*knob_board_audio_tap_t)(const int16_t *pcm, size_t samples, void 
 void knob_board_audio_set_tap(knob_board_audio_tap_t cb, void *ctx);
 
 /* ----------------------------------------------------------------------
+ * Battery: read off the supply rail through the BATT_ADC divider. The
+ * charger reports nothing to the S3, so "charging" means USB power is in --
+ * the board cannot tell charging from charged.
+ * ---------------------------------------------------------------------- */
+
+typedef struct {
+    uint16_t rail_mv;    /* the supply rail, smoothed */
+    bool     charging;   /* USB power in */
+    uint8_t  percent;    /* 0..100 on battery; 0 while charging (not knowable) */
+} knob_board_battery_t;
+
+/** The latest reading, sampled every 500 ms. Any task. False if the ADC did
+ *  not start. */
+bool knob_board_battery_get(knob_board_battery_t *out);
+
+/* ----------------------------------------------------------------------
  * The ESP32 co-processor: a text-line UART link (115200 8N1).
  *
  * What the lines mean is up to the firmware on each side; the board only

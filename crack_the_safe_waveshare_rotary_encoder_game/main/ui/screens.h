@@ -115,6 +115,7 @@ typedef struct _objects_t {
     lv_obj_t *hint_arrow_ccw;
     lv_obj_t *hint_text;
     lv_obj_t *level_text;
+    lv_obj_t *battery_icon;
     lv_obj_t *timer_text;
     lv_obj_t *slot1;
     lv_obj_t *slot1_line;

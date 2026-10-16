@@ -1153,6 +1153,17 @@ void create_screen_page_play() {
             lv_label_set_text_static(obj, "Level 1");
         }
         {
+            // battery_icon
+            lv_obj_t *obj = lv_label_create(parent_obj);
+            objects.battery_icon = obj;
+            lv_obj_set_pos(obj, 160, 96);
+            lv_obj_set_size(obj, 40, LV_SIZE_CONTENT);
+            lv_label_set_long_mode(obj, LV_LABEL_LONG_CLIP);
+            add_style_battery_icon(obj);
+            lv_obj_set_style_text_align(obj, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_label_set_text_static(obj, "");
+        }
+        {
             // timer_text
             lv_obj_t *obj = lv_label_create(parent_obj);
             objects.timer_text = obj;
@@ -1773,6 +1784,9 @@ void change_color_theme(uint32_t theme_index) {
     lv_style_set_text_color(get_style_timer_text_MAIN_DEFAULT(), lv_color_hex(theme_colors[theme_index][10]));
     lv_style_set_text_color(get_style_timer_text_MAIN_DISABLED(), lv_color_hex(theme_colors[theme_index][15]));
     lv_style_set_text_color(get_style_level_text_MAIN_DEFAULT(), lv_color_hex(theme_colors[theme_index][12]));
+    lv_style_set_text_color(get_style_battery_icon_MAIN_DEFAULT(), lv_color_hex(theme_colors[theme_index][9]));
+    lv_style_set_text_color(get_style_battery_icon_MAIN_CHECKED(), lv_color_hex(theme_colors[theme_index][12]));
+    lv_style_set_text_color(get_style_battery_icon_MAIN_DISABLED(), lv_color_hex(theme_colors[theme_index][15]));
     lv_style_set_text_color(get_style_hint_text_MAIN_DEFAULT(), lv_color_hex(theme_colors[theme_index][9]));
     lv_style_set_text_color(get_style_hint_text_MAIN_DISABLED(), lv_color_hex(theme_colors[theme_index][15]));
     lv_style_set_text_color(get_style_hint_icon_MAIN_DEFAULT(), lv_color_hex(theme_colors[theme_index][9]));

@@ -239,6 +239,13 @@ lv_style_t *get_style_level_text_MAIN_DEFAULT();
 void add_style_level_text(lv_obj_t *obj);
 void remove_style_level_text(lv_obj_t *obj);
 
+// Style: BatteryIcon
+lv_style_t *get_style_battery_icon_MAIN_DEFAULT();
+lv_style_t *get_style_battery_icon_MAIN_CHECKED();
+lv_style_t *get_style_battery_icon_MAIN_DISABLED();
+void add_style_battery_icon(lv_obj_t *obj);
+void remove_style_battery_icon(lv_obj_t *obj);
+
 // Style: HintText
 lv_style_t *get_style_hint_text_MAIN_DEFAULT();
 lv_style_t *get_style_hint_text_MAIN_DISABLED();
