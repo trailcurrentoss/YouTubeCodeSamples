@@ -1,0 +1,13 @@
+## BLE reaches the ESP32-C6 coprocessor through ESP-Hosted. Keep this on the
+## same 2.12 line as the C6 slave firmware (Advance_P4_On-Board_ESP32C6
+## _Firmware_V2.12.3).
+dependencies:
+  espressif/esp_hosted:
+    rules:
+      - if: target in [esp32p4]
+    version: "~2.12.3"
+  # esp_hosted's headers include esp_wifi_remote.h even for BT-only use.
+  espressif/esp_wifi_remote:
+    rules:
+      - if: target in [esp32p4]
+    version: "*"

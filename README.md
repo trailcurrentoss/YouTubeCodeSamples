@@ -29,6 +29,7 @@ adapted, not dropped into a product unchanged.
 | [Antenna A/B Test](Esp32IndustrialSmaTest/README.md) | Waveshare ESP32-S3-RS485-CAN | Measures the onboard ceramic antenna against an external SMA antenna and reports the difference in dB. |
 | **CAD** | | |
 | [Torsion Table CAD](TorsionTableCAD/README.md) | FreeCAD + LowRider 4 CNC | CAM jobs for cutting the plywood ribs of a torsion box table. |
+| [Aluminum Cyberdeck Tablet](aluminum-cyberdeck/README.md) | FreeCAD + 3-axis CNC + 3D printer | A 10.1" Radxa Dragon Q6A tablet: CNC aluminum shell halves, 3D-printed port inserts that slide into notches milled from the top, and posted GRBL G-code. |
 
 The three macro pads share one companion program, which runs on your computer
 and tells the pad which app has focus. The pads identify as the same USB

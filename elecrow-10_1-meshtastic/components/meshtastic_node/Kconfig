@@ -1,0 +1,37 @@
+menu "Meshtastic node"
+
+    choice MESH_SOCKET_PINMAP
+        prompt "Wireless-module socket pin map"
+        default MESH_SOCKET_AUTO
+        help
+            CrowPanel Advance P4 V1.2 moved the socket's IRQ/RESET lines
+            (V1.0/V1.1: IRQ=GPIO53 RESET=GPIO54, V1.2: IRQ=GPIO27 RESET=GPIO28).
+            Auto-detect reads both candidate IRQ pins as inputs only.
+
+        config MESH_SOCKET_AUTO
+            bool "Auto-detect"
+        config MESH_SOCKET_V1_1
+            bool "V1.0 / V1.1 (IRQ 53, RESET 54)"
+        config MESH_SOCKET_V1_2
+            bool "V1.2 (IRQ 27, RESET 28)"
+    endchoice
+
+    choice MESH_REGION
+        prompt "Default LoRa region"
+        default MESH_REGION_US
+        help
+            Used until a region is set from the Meshtastic app. The Elecrow
+            SX1262 module is a 915 MHz part, so only 915 MHz bands are offered.
+
+        config MESH_REGION_US
+            bool "US (902-928 MHz)"
+        config MESH_REGION_ANZ
+            bool "ANZ (915-928 MHz)"
+    endchoice
+
+    config MESH_TX_POWER_DBM
+        int "Default TX power (dBm, 0 = region maximum)"
+        range 0 22
+        default 22
+
+endmenu
